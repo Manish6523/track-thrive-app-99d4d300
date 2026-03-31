@@ -16,6 +16,17 @@ export interface Meal {
   food: string;
 }
 
+export interface StreakData {
+  currentStreak: number;
+  lastCompletedDate: string;
+}
+
+export interface DayHistory {
+  date: string;
+  workoutPct: number;
+  dietPct: number;
+}
+
 export const WORKOUT_DATA: WorkoutDay[] = [
   {
     day: "Monday",
@@ -120,4 +131,77 @@ export function loadProgress(key: string): Record<string, boolean> {
 
 export function saveProgress(key: string, checked: Record<string, boolean>) {
   localStorage.setItem(key, JSON.stringify({ _date: TODAY_KEY(), checked }));
+}
+
+// Streak helpers
+export function loadStreak(): StreakData {
+  try {
+    const raw = localStorage.getItem("streakData");
+    if (!raw) return { currentStreak: 0, lastCompletedDate: "" };
+    return JSON.parse(raw);
+  } catch {
+    return { currentStreak: 0, lastCompletedDate: "" };
+  }
+}
+
+export function updateStreak(isFullyComplete: boolean): StreakData {
+  const streak = loadStreak();
+  const today = TODAY_KEY();
+
+  if (!isFullyComplete) return streak;
+  if (streak.lastCompletedDate === today) return streak;
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayKey = yesterday.toISOString().slice(0, 10);
+
+  let newStreak: StreakData;
+  if (streak.lastCompletedDate === yesterdayKey) {
+    newStreak = { currentStreak: streak.currentStreak + 1, lastCompletedDate: today };
+  } else {
+    newStreak = { currentStreak: 1, lastCompletedDate: today };
+  }
+
+  localStorage.setItem("streakData", JSON.stringify(newStreak));
+  return newStreak;
+}
+
+// Weekly history helpers
+export function loadWeeklyHistory(): DayHistory[] {
+  try {
+    const raw = localStorage.getItem("weeklyHistory");
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export function saveToWeeklyHistory(workoutPct: number, dietPct: number) {
+  const history = loadWeeklyHistory();
+  const today = TODAY_KEY();
+
+  const existing = history.findIndex((h) => h.date === today);
+  if (existing >= 0) {
+    history[existing] = { date: today, workoutPct, dietPct };
+  } else {
+    history.push({ date: today, workoutPct, dietPct });
+  }
+
+  // Keep only last 7 days
+  const trimmed = history.slice(-7);
+  localStorage.setItem("weeklyHistory", JSON.stringify(trimmed));
+}
+
+export function getGreeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Good Morning";
+  if (hour < 17) return "Good Afternoon";
+  return "Good Evening";
+}
+
+export function getTodayWorkout(): WorkoutDay {
+  const dayIndex = new Date().getDay();
+  const dayMap = [6, 0, 1, 2, 3, 4, 5];
+  return WORKOUT_DATA[dayMap[dayIndex]];
 }

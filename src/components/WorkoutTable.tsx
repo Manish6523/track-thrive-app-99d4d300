@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Dumbbell, LayoutGrid, Table as TableIcon } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { WORKOUT_DATA, loadProgress, saveProgress } from "@/lib/fitness-data";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const STORAGE_KEY = "workoutProgress";
 
@@ -10,16 +11,19 @@ interface WorkoutTableProps {
 }
 
 const WorkoutTable = ({ onProgressChange }: WorkoutTableProps) => {
+  const isMobile = useIsMobile();
   const [checked, setChecked] = useState<Record<string, boolean>>(() => loadProgress(STORAGE_KEY));
-  const [viewMode, setViewMode] = useState<"table" | "card">("table");
+  const [viewMode, setViewMode] = useState<"table" | "card">(isMobile ? "card" : "table");
 
   const dayIndex = new Date().getDay();
-  const dayMap = [6, 0, 1, 2, 3, 4, 5]; // Sun=6, Mon=0...
+  const dayMap = [6, 0, 1, 2, 3, 4, 5];
   const todayIdx = dayMap[dayIndex];
   const today = WORKOUT_DATA[todayIdx];
-
-  // Count total checkable exercises (non-rest days)
   const totalExercises = today.isRest ? 0 : today.exercises.length;
+
+  useEffect(() => {
+    if (isMobile) setViewMode("card");
+  }, [isMobile]);
 
   useEffect(() => {
     saveProgress(STORAGE_KEY, checked);
@@ -33,12 +37,12 @@ const WorkoutTable = ({ onProgressChange }: WorkoutTableProps) => {
 
   return (
     <div className="rounded-2xl border bg-card shadow-sm">
-      <div className="flex items-center justify-between border-b p-5">
+      <div className="flex items-center justify-between border-b p-4 sm:p-5">
         <div className="flex items-center gap-3">
           <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
             <Dumbbell className="h-5 w-5" />
           </div>
-          <h2 className="text-lg font-semibold text-card-foreground">Workout Plan</h2>
+          <h2 className="text-base sm:text-lg font-semibold text-card-foreground">Workout Plan</h2>
         </div>
         <div className="flex gap-1 rounded-lg border p-0.5">
           <button
@@ -140,16 +144,23 @@ const WorkoutTable = ({ onProgressChange }: WorkoutTableProps) => {
           </table>
         </div>
       ) : (
-        <div className="grid gap-3 p-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-2 p-3 sm:gap-3 sm:p-5 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {WORKOUT_DATA.map((day, di) => (
             <div
               key={day.day}
-              className={`rounded-xl border p-4 transition-colors ${
+              className={`rounded-xl border p-3 sm:p-4 transition-colors ${
                 di === todayIdx ? "border-primary/40 bg-primary/5" : ""
               }`}
             >
-              <div className="flex items-center justify-between mb-3">
-                <span className="font-semibold text-card-foreground">{day.day}</span>
+              <div className="flex items-center justify-between mb-2 sm:mb-3">
+                <span className="font-semibold text-sm sm:text-base text-card-foreground">
+                  {day.day}
+                  {di === todayIdx && (
+                    <span className="ml-2 inline-block rounded-full bg-primary px-2 py-0.5 text-[10px] font-semibold text-primary-foreground">
+                      Today
+                    </span>
+                  )}
+                </span>
                 <span
                   className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${
                     day.isRest
@@ -160,7 +171,7 @@ const WorkoutTable = ({ onProgressChange }: WorkoutTableProps) => {
                   {day.type}
                 </span>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {day.exercises.map((ex) => {
                   const key = `${day.day}-${ex.name}`;
                   const isDone = checked[key];
@@ -169,7 +180,7 @@ const WorkoutTable = ({ onProgressChange }: WorkoutTableProps) => {
                     <button
                       key={key}
                       onClick={() => isToday && toggle(key)}
-                      className={`flex w-full items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-all ${
+                      className={`flex w-full items-center gap-2 rounded-lg px-2.5 py-1.5 sm:px-3 sm:py-2 text-left text-xs sm:text-sm transition-all ${
                         isDone
                           ? "bg-success/10 text-success"
                           : isToday
@@ -180,13 +191,13 @@ const WorkoutTable = ({ onProgressChange }: WorkoutTableProps) => {
                       {isToday && (
                         <Checkbox
                           checked={isDone}
-                          className="h-4 w-4 pointer-events-none"
+                          className="h-3.5 w-3.5 sm:h-4 sm:w-4 pointer-events-none"
                         />
                       )}
                       <span>
                         {ex.name}
                         {ex.sets && (
-                          <span className="ml-1 text-xs text-muted-foreground">
+                          <span className="ml-1 text-[10px] sm:text-xs text-muted-foreground">
                             {ex.sets}
                           </span>
                         )}
