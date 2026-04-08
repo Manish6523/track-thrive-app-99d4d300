@@ -6,6 +6,7 @@ import DietTable from "@/components/DietTable";
 import ProgressCard from "@/components/ProgressCard";
 import StreakCard from "@/components/StreakCard";
 import WeeklyChart from "@/components/WeeklyChart";
+import WeightTracker from "@/components/WeightTracker";
 import {
   getGreeting,
   getTodayWorkout,
@@ -14,11 +15,11 @@ import {
   loadWeeklyHistory,
   saveToWeeklyHistory,
 } from "@/lib/fitness-data";
-import { loadCustomDiet } from "@/lib/fitness-store";
+import { loadCustomWorkouts, loadCustomDiet } from "@/lib/fitness-store";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
-const Index = () => {
+const Dashboard = () => {
   const [workoutStats, setWorkoutStats] = useState({ completed: 0, total: 0 });
   const [dietStats, setDietStats] = useState({ completed: 0, total: 0 });
   const [streak, setStreak] = useState(() => loadStreak());
@@ -57,20 +58,20 @@ const Index = () => {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-3 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-2.5 sm:gap-3">
             <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
+              <LayoutDashboard className="h-4 w-4 sm:h-5 sm:w-5" />
             </div>
             <div>
-              <h1 className="text-lg sm:text-xl font-bold text-foreground">Fitness Tracker</h1>
+              <h1 className="text-lg sm:text-xl font-bold text-foreground">Dashboard</h1>
               <p className="text-[10px] sm:text-xs text-muted-foreground">
                 {dayName}, {today.toLocaleDateString("en-US", { month: "long", day: "numeric" })}
               </p>
             </div>
           </div>
           <Link
-            to="/dashboard"
+            to="/"
             className="text-xs sm:text-sm font-medium text-primary hover:underline flex items-center gap-1"
           >
-            <LayoutDashboard className="h-3.5 w-3.5" /> Dashboard
+            <Activity className="h-3.5 w-3.5" /> Tracker
           </Link>
         </div>
       </header>
@@ -79,11 +80,11 @@ const Index = () => {
         <div className="space-y-1">
           <h2 className="text-xl sm:text-2xl font-bold text-foreground">{getGreeting()} 💪</h2>
           <p className="text-sm text-muted-foreground">
-            Today is <span className="font-medium text-primary">{todayWorkout.type}</span> day
-            {todayWorkout.isRest ? " — take it easy!" : ` — ${todayWorkout.exercises.length} exercises to crush`}
+            Here's your progress overview for today
           </p>
         </div>
 
+        {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <div className="rounded-xl border bg-card p-3 sm:p-4 text-center">
             <Target className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-primary" />
@@ -102,6 +103,7 @@ const Index = () => {
           </div>
         </div>
 
+        {/* Progress Cards */}
         <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
           <ProgressCard title="Workout" completed={workoutStats.completed} total={workoutStats.total} icon={<Dumbbell className="h-4 w-4 sm:h-5 sm:w-5" />} />
           <ProgressCard title="Diet" completed={dietStats.completed} total={dietStats.total} icon={<UtensilsCrossed className="h-4 w-4 sm:h-5 sm:w-5" />} />
@@ -109,7 +111,13 @@ const Index = () => {
           <StreakCard streak={streak.currentStreak} />
         </div>
 
+        {/* Weekly Chart */}
         <WeeklyChart history={weeklyHistory} />
+
+        {/* Weight Tracker */}
+        <WeightTracker />
+
+        {/* Workout & Diet */}
         <WorkoutTable onProgressChange={onWorkoutChange} />
         <DietTable onProgressChange={onDietChange} />
       </main>
@@ -117,4 +125,4 @@ const Index = () => {
   );
 };
 
-export default Index;
+export default Dashboard;
