@@ -1,5 +1,6 @@
 import { useState, useCallback, useEffect } from "react";
-import { Activity, Dumbbell, UtensilsCrossed, Flame, Target } from "lucide-react";
+import { Activity, Dumbbell, UtensilsCrossed, Flame, Target, LayoutDashboard } from "lucide-react";
+import { Link } from "react-router-dom";
 import WorkoutTable from "@/components/WorkoutTable";
 import DietTable from "@/components/DietTable";
 import ProgressCard from "@/components/ProgressCard";
@@ -12,8 +13,8 @@ import {
   updateStreak,
   loadWeeklyHistory,
   saveToWeeklyHistory,
-  DIET_DATA,
 } from "@/lib/fitness-data";
+import { loadCustomDiet } from "@/lib/fitness-store";
 
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
@@ -22,6 +23,7 @@ const Index = () => {
   const [dietStats, setDietStats] = useState({ completed: 0, total: 0 });
   const [streak, setStreak] = useState(() => loadStreak());
   const [weeklyHistory, setWeeklyHistory] = useState(() => loadWeeklyHistory());
+  const customDiet = loadCustomDiet();
 
   const onWorkoutChange = useCallback((completed: number, total: number) => {
     setWorkoutStats({ completed, total });
@@ -36,10 +38,8 @@ const Index = () => {
   const workoutPct = workoutStats.total === 0 ? 0 : Math.round((workoutStats.completed / workoutStats.total) * 100);
   const dietPct = dietStats.total === 0 ? 0 : Math.round((dietStats.completed / dietStats.total) * 100);
 
-  // Update streak & weekly history when progress changes
   useEffect(() => {
-    const isFullyComplete =
-      overallTotal > 0 && overallCompleted === overallTotal;
+    const isFullyComplete = overallTotal > 0 && overallCompleted === overallTotal;
     const newStreak = updateStreak(isFullyComplete);
     setStreak(newStreak);
     saveToWeeklyHistory(workoutPct, dietPct);
@@ -49,11 +49,10 @@ const Index = () => {
   const today = new Date();
   const dayName = DAYS[today.getDay()];
   const todayWorkout = getTodayWorkout();
-  const mealsRemaining = DIET_DATA.length - dietStats.completed;
+  const mealsRemaining = customDiet.length - dietStats.completed;
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-3 py-3 sm:px-6 sm:py-4">
           <div className="flex items-center gap-2.5 sm:gap-3">
@@ -67,11 +66,16 @@ const Index = () => {
               </p>
             </div>
           </div>
+          <Link
+            to="/dashboard"
+            className="text-xs sm:text-sm font-medium text-primary hover:underline flex items-center gap-1"
+          >
+            <LayoutDashboard className="h-3.5 w-3.5" /> Dashboard
+          </Link>
         </div>
       </header>
 
       <main className="mx-auto max-w-7xl space-y-4 sm:space-y-6 px-3 py-4 sm:px-6 sm:py-6">
-        {/* Greeting */}
         <div className="space-y-1">
           <h2 className="text-xl sm:text-2xl font-bold text-foreground">{getGreeting()} 💪</h2>
           <p className="text-sm text-muted-foreground">
@@ -80,7 +84,6 @@ const Index = () => {
           </p>
         </div>
 
-        {/* Quick Stats */}
         <div className="grid grid-cols-3 gap-2 sm:gap-3">
           <div className="rounded-xl border bg-card p-3 sm:p-4 text-center">
             <Target className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-primary" />
@@ -99,36 +102,15 @@ const Index = () => {
           </div>
         </div>
 
-        {/* Progress Cards + Streak */}
         <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-          <ProgressCard
-            title="Workout"
-            completed={workoutStats.completed}
-            total={workoutStats.total}
-            icon={<Dumbbell className="h-4 w-4 sm:h-5 sm:w-5" />}
-          />
-          <ProgressCard
-            title="Diet"
-            completed={dietStats.completed}
-            total={dietStats.total}
-            icon={<UtensilsCrossed className="h-4 w-4 sm:h-5 sm:w-5" />}
-          />
-          <ProgressCard
-            title="Overall"
-            completed={overallCompleted}
-            total={overallTotal}
-            icon={<Flame className="h-4 w-4 sm:h-5 sm:w-5" />}
-          />
+          <ProgressCard title="Workout" completed={workoutStats.completed} total={workoutStats.total} icon={<Dumbbell className="h-4 w-4 sm:h-5 sm:w-5" />} />
+          <ProgressCard title="Diet" completed={dietStats.completed} total={dietStats.total} icon={<UtensilsCrossed className="h-4 w-4 sm:h-5 sm:w-5" />} />
+          <ProgressCard title="Overall" completed={overallCompleted} total={overallTotal} icon={<Flame className="h-4 w-4 sm:h-5 sm:w-5" />} />
           <StreakCard streak={streak.currentStreak} />
         </div>
 
-        {/* Weekly Chart */}
         <WeeklyChart history={weeklyHistory} />
-
-        {/* Workout */}
         <WorkoutTable onProgressChange={onWorkoutChange} />
-
-        {/* Diet */}
         <DietTable onProgressChange={onDietChange} />
       </main>
     </div>
