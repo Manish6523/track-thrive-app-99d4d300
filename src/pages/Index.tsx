@@ -1,29 +1,54 @@
-import { useState, useCallback, useEffect } from "react";
-import { Activity, Dumbbell, UtensilsCrossed, Flame, Target, LayoutDashboard } from "lucide-react";
-import { Link } from "react-router-dom";
-import WorkoutTable from "@/components/WorkoutTable";
-import DietTable from "@/components/DietTable";
-import ProgressCard from "@/components/ProgressCard";
-import StreakCard from "@/components/StreakCard";
-import WeeklyChart from "@/components/WeeklyChart";
+import { useState, useCallback, useEffect, useRef, TouchEvent } from "react";
+import { Home, Dumbbell, UtensilsCrossed, BarChart3 } from "lucide-react";
+import HomeTab from "@/components/tabs/HomeTab";
+import WorkoutTab from "@/components/tabs/WorkoutTab";
+import DietTab from "@/components/tabs/DietTab";
+import StatsTab from "@/components/tabs/StatsTab";
 import {
-  getGreeting,
-  getTodayWorkout,
   loadStreak,
   updateStreak,
   loadWeeklyHistory,
   saveToWeeklyHistory,
 } from "@/lib/fitness-data";
-import { loadCustomDiet } from "@/lib/fitness-store";
 
-const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+const TABS = [
+  { id: "home", label: "Home", icon: Home },
+  { id: "workout", label: "Workout", icon: Dumbbell },
+  { id: "diet", label: "Diet", icon: UtensilsCrossed },
+  { id: "stats", label: "Stats", icon: BarChart3 },
+] as const;
 
 const Index = () => {
+  const [activeTab, setActiveTab] = useState(0);
   const [workoutStats, setWorkoutStats] = useState({ completed: 0, total: 0 });
   const [dietStats, setDietStats] = useState({ completed: 0, total: 0 });
   const [streak, setStreak] = useState(() => loadStreak());
   const [weeklyHistory, setWeeklyHistory] = useState(() => loadWeeklyHistory());
-  const customDiet = loadCustomDiet();
+
+  // Swipe handling
+  const touchStart = useRef<number | null>(null);
+  const touchEnd = useRef<number | null>(null);
+  const minSwipeDistance = 50;
+
+  const onTouchStart = (e: TouchEvent) => {
+    touchEnd.current = null;
+    touchStart.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchMove = (e: TouchEvent) => {
+    touchEnd.current = e.targetTouches[0].clientX;
+  };
+
+  const onTouchEnd = () => {
+    if (!touchStart.current || !touchEnd.current) return;
+    const distance = touchStart.current - touchEnd.current;
+    if (Math.abs(distance) < minSwipeDistance) return;
+    if (distance > 0 && activeTab < TABS.length - 1) {
+      setActiveTab((p) => p + 1);
+    } else if (distance < 0 && activeTab > 0) {
+      setActiveTab((p) => p - 1);
+    }
+  };
 
   const onWorkoutChange = useCallback((completed: number, total: number) => {
     setWorkoutStats({ completed, total });
@@ -46,73 +71,52 @@ const Index = () => {
     setWeeklyHistory(loadWeeklyHistory());
   }, [overallCompleted, overallTotal, workoutPct, dietPct]);
 
-  const today = new Date();
-  const dayName = DAYS[today.getDay()];
-  const todayWorkout = getTodayWorkout();
-  const mealsRemaining = customDiet.length - dietStats.completed;
-
   return (
-    <div className="min-h-screen bg-background">
-      <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-10">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-3 py-3 sm:px-6 sm:py-4">
-          <div className="flex items-center gap-2.5 sm:gap-3">
-            <div className="flex h-9 w-9 sm:h-10 sm:w-10 items-center justify-center rounded-xl bg-primary text-primary-foreground">
-              <Activity className="h-4 w-4 sm:h-5 sm:w-5" />
-            </div>
-            <div>
-              <h1 className="text-lg sm:text-xl font-bold text-foreground">Fitness Tracker</h1>
-              <p className="text-[10px] sm:text-xs text-muted-foreground">
-                {dayName}, {today.toLocaleDateString("en-US", { month: "long", day: "numeric" })}
-              </p>
-            </div>
-          </div>
-          <Link
-            to="/dashboard"
-            className="text-xs sm:text-sm font-medium text-primary hover:underline flex items-center gap-1"
-          >
-            <LayoutDashboard className="h-3.5 w-3.5" /> Dashboard
-          </Link>
-        </div>
-      </header>
+    <div className="min-h-screen bg-background flex flex-col">
+      {/* Content area */}
+      <div
+        className="flex-1 overflow-y-auto pb-20"
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        {activeTab === 0 && (
+          <HomeTab
+            workoutStats={workoutStats}
+            dietStats={dietStats}
+            streak={streak}
+            overallCompleted={overallCompleted}
+            overallTotal={overallTotal}
+          />
+        )}
+        {activeTab === 1 && <WorkoutTab onProgressChange={onWorkoutChange} />}
+        {activeTab === 2 && <DietTab onProgressChange={onDietChange} />}
+        {activeTab === 3 && <StatsTab weeklyHistory={weeklyHistory} />}
+      </div>
 
-      <main className="mx-auto max-w-7xl space-y-4 sm:space-y-6 px-3 py-4 sm:px-6 sm:py-6">
-        <div className="space-y-1">
-          <h2 className="text-xl sm:text-2xl font-bold text-foreground">{getGreeting()} 💪</h2>
-          <p className="text-sm text-muted-foreground">
-            Today is <span className="font-medium text-primary">{todayWorkout.type}</span> day
-            {todayWorkout.isRest ? " — take it easy!" : ` — ${todayWorkout.exercises.length} exercises to crush`}
-          </p>
+      {/* Bottom Tab Bar */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t z-50 safe-area-bottom">
+        <div className="flex items-center justify-around px-2 py-1.5">
+          {TABS.map((tab, i) => {
+            const Icon = tab.icon;
+            const isActive = activeTab === i;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(i)}
+                className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all ${
+                  isActive
+                    ? "text-primary"
+                    : "text-muted-foreground"
+                }`}
+              >
+                <Icon className={`h-5 w-5 transition-all ${isActive ? "scale-110" : ""}`} strokeWidth={isActive ? 2.5 : 1.8} />
+                <span className={`text-[10px] font-medium ${isActive ? "text-primary" : ""}`}>{tab.label}</span>
+              </button>
+            );
+          })}
         </div>
-
-        <div className="grid grid-cols-3 gap-2 sm:gap-3">
-          <div className="rounded-xl border bg-card p-3 sm:p-4 text-center">
-            <Target className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-primary" />
-            <p className="text-lg sm:text-xl font-bold text-card-foreground">{todayWorkout.type}</p>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Today's Focus</p>
-          </div>
-          <div className="rounded-xl border bg-card p-3 sm:p-4 text-center">
-            <UtensilsCrossed className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-primary" />
-            <p className="text-lg sm:text-xl font-bold text-card-foreground">{mealsRemaining}</p>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Meals Left</p>
-          </div>
-          <div className="rounded-xl border bg-card p-3 sm:p-4 text-center">
-            <Flame className="h-4 w-4 sm:h-5 sm:w-5 mx-auto mb-1 text-destructive" />
-            <p className="text-lg sm:text-xl font-bold text-card-foreground">{streak.currentStreak}</p>
-            <p className="text-[10px] sm:text-xs text-muted-foreground">Day Streak</p>
-          </div>
-        </div>
-
-        <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
-          <ProgressCard title="Workout" completed={workoutStats.completed} total={workoutStats.total} icon={<Dumbbell className="h-4 w-4 sm:h-5 sm:w-5" />} />
-          <ProgressCard title="Diet" completed={dietStats.completed} total={dietStats.total} icon={<UtensilsCrossed className="h-4 w-4 sm:h-5 sm:w-5" />} />
-          <ProgressCard title="Overall" completed={overallCompleted} total={overallTotal} icon={<Flame className="h-4 w-4 sm:h-5 sm:w-5" />} />
-          <StreakCard streak={streak.currentStreak} />
-        </div>
-
-        <WeeklyChart history={weeklyHistory} />
-        <WorkoutTable onProgressChange={onWorkoutChange} />
-        <DietTable onProgressChange={onDietChange} />
-      </main>
+      </nav>
     </div>
   );
 };

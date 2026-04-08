@@ -1,4 +1,3 @@
-import { BarChart3 } from "lucide-react";
 import type { DayHistory } from "@/lib/fitness-data";
 
 interface WeeklyChartProps {
@@ -8,7 +7,6 @@ interface WeeklyChartProps {
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
 const WeeklyChart = ({ history }: WeeklyChartProps) => {
-  // Build last 7 days
   const days: { label: string; date: string; workoutPct: number; dietPct: number }[] = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
@@ -24,52 +22,32 @@ const WeeklyChart = ({ history }: WeeklyChartProps) => {
   }
 
   return (
-    <div className="rounded-2xl border bg-card p-4 sm:p-6 shadow-sm">
-      <div className="flex items-center gap-3 mb-4">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <BarChart3 className="h-5 w-5" />
-        </div>
-        <h2 className="text-lg font-semibold text-card-foreground">Weekly Overview</h2>
+    <div className="rounded-2xl bg-card border p-5">
+      <h3 className="text-sm font-semibold text-foreground mb-1">Weekly Overview</h3>
+      <div className="flex gap-3 mb-4 text-[10px] text-muted-foreground">
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-primary inline-block" /> Workout</span>
+        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm inline-block" style={{ backgroundColor: "hsl(var(--success))" }} /> Diet</span>
       </div>
 
-      {/* Legend */}
-      <div className="flex gap-4 mb-4 text-xs text-muted-foreground">
-        <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded-sm bg-primary" />
-          <span>Workout</span>
-        </div>
-        <div className="flex items-center gap-1.5">
-          <div className="h-2.5 w-2.5 rounded-sm bg-success" style={{ backgroundColor: "hsl(var(--success))" }} />
-          <span>Diet</span>
-        </div>
-      </div>
-
-      {/* Chart */}
-      <div className="flex items-end gap-1.5 sm:gap-3 h-32">
+      <div className="flex items-end gap-2 h-28">
         {days.map((day) => {
-          const avg = Math.round((day.workoutPct + day.dietPct) / 2);
           const isToday = day.date === new Date().toISOString().slice(0, 10);
           return (
-            <div key={day.date} className="flex-1 flex flex-col items-center gap-1">
-              <span className="text-[10px] text-muted-foreground">{avg > 0 ? `${avg}%` : ""}</span>
+            <div key={day.date} className="flex-1 flex flex-col items-center gap-1.5">
               <div className="w-full flex gap-0.5 items-end h-20">
                 <div
-                  className="flex-1 rounded-t-sm bg-primary transition-all"
-                  style={{ height: `${Math.max(day.workoutPct > 0 ? 8 : 0, day.workoutPct)}%` }}
+                  className="flex-1 rounded-t bg-primary transition-all"
+                  style={{ height: `${Math.max(day.workoutPct > 0 ? 8 : 2, day.workoutPct)}%` }}
                 />
                 <div
-                  className="flex-1 rounded-t-sm transition-all"
+                  className="flex-1 rounded-t transition-all"
                   style={{
-                    height: `${Math.max(day.dietPct > 0 ? 8 : 0, day.dietPct)}%`,
+                    height: `${Math.max(day.dietPct > 0 ? 8 : 2, day.dietPct)}%`,
                     backgroundColor: "hsl(var(--success))",
                   }}
                 />
               </div>
-              <span
-                className={`text-[10px] sm:text-xs font-medium ${
-                  isToday ? "text-primary" : "text-muted-foreground"
-                }`}
-              >
+              <span className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-muted-foreground"}`}>
                 {day.label}
               </span>
             </div>
