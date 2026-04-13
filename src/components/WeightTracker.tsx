@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { TrendingUp, TrendingDown, Plus } from "lucide-react";
+import { TrendingUp, TrendingDown, Plus, BarChart2, Table2, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -23,9 +23,15 @@ function saveWeightHistory(entries: WeightEntry[]) {
   localStorage.setItem(STORAGE_KEY, JSON.stringify(entries));
 }
 
+function formatDate(dateStr: string) {
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
+}
+
 const WeightTracker = () => {
   const [entries, setEntries] = useState<WeightEntry[]>(loadWeightHistory);
   const [input, setInput] = useState("");
+  const [view, setView] = useState<"chart" | "table">("chart");
 
   const addWeight = () => {
     const weight = parseFloat(input);
@@ -38,6 +44,12 @@ const WeightTracker = () => {
     saveWeightHistory(trimmed);
     setEntries(trimmed);
     setInput("");
+  };
+
+  const deleteEntry = (date: string) => {
+    const updated = entries.filter((e) => e.date !== date);
+    saveWeightHistory(updated);
+    setEntries(updated);
   };
 
   const last = entries.length > 0 ? entries[entries.length - 1] : null;
@@ -53,19 +65,37 @@ const WeightTracker = () => {
   return (
     <div className="rounded-2xl bg-card border">
       <div className="p-5 space-y-4">
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-foreground">Weight</h3>
-          {last && (
-            <div className="flex items-center gap-1.5 text-sm">
-              <span className="font-bold text-foreground">{last.weight} kg</span>
-              {diff !== 0 && (
-                <span className={`flex items-center text-xs ${diff < 0 ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
-                  {diff < 0 ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
-                  {Math.abs(diff).toFixed(1)}
-                </span>
-              )}
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            <h3 className="text-sm font-semibold text-foreground">Weight</h3>
+            {last && (
+              <div className="flex items-center gap-1.5 text-sm">
+                <span className="font-bold text-foreground">{last.weight} kg</span>
+                {diff !== 0 && (
+                  <span className={`flex items-center text-xs ${diff < 0 ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
+                    {diff < 0 ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
+                    {Math.abs(diff).toFixed(1)}
+                  </span>
+                )}
+              </div>
+            )}
+          </div>
+          {/* View toggle */}
+          <div className="flex items-center bg-muted rounded-lg p-0.5">
+            <button
+              onClick={() => setView("chart")}
+              className={`p-1.5 rounded-md transition-all ${view === "chart" ? "bg-card shadow-sm text-primary" : "text-muted-foreground"}`}
+            >
+              <BarChart2 className="h-3.5 w-3.5" />
+            </button>
+            <button
+              onClick={() => setView("table")}
+              className={`p-1.5 rounded-md transition-all ${view === "table" ? "bg-card shadow-sm text-primary" : "text-muted-foreground"}`}
+            >
+              <Table2 className="h-3.5 w-3.5" />
+            </button>
+          </div>
         </div>
 
         {/* Input */}
@@ -84,41 +114,75 @@ const WeightTracker = () => {
           </Button>
         </div>
 
-        {/* Chart */}
-        {chartEntries.length > 1 ? (
-          <div className="relative h-32 w-full">
-            <div className="absolute left-0 top-0 h-full flex flex-col justify-between text-[10px] text-muted-foreground pr-1">
-              <span>{maxW.toFixed(0)}</span>
-              <span>{minW.toFixed(0)}</span>
-            </div>
-            <div className="ml-7 h-full relative border-b border-l border-border rounded-bl">
-              <svg className="w-full h-full" viewBox={`0 0 ${chartEntries.length - 1} 100`} preserveAspectRatio="none">
-                <polyline
-                  fill="none"
-                  stroke="hsl(var(--primary))"
-                  strokeWidth="2"
-                  vectorEffect="non-scaling-stroke"
-                  points={chartEntries
-                    .map((e, i) => `${i},${100 - ((e.weight - minW) / range) * 100}`)
-                    .join(" ")}
-                />
-                {chartEntries.map((e, i) => (
-                  <circle
-                    key={e.date}
-                    cx={i}
-                    cy={100 - ((e.weight - minW) / range) * 100}
-                    r="3"
-                    vectorEffect="non-scaling-stroke"
-                    fill="hsl(var(--primary))"
-                  />
-                ))}
-              </svg>
-            </div>
-          </div>
-        ) : (
-          <div className="flex items-center justify-center h-20 text-sm text-muted-foreground">
-            {chartEntries.length === 1 ? "Log one more day to see your trend" : "Start logging to see progress"}
-          </div>
+        {/* Chart View - Bar Chart */}
+        {view === "chart" && (
+          <>
+            {chartEntries.length > 0 ? (
+              <div className="space-y-2">
+                <div className="flex items-end gap-1 h-36">
+                  {chartEntries.map((e) => {
+                    const pct = ((e.weight - minW) / range) * 100;
+                    return (
+                      <div key={e.date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
+                        <span className="text-[9px] font-medium text-muted-foreground">{e.weight}</span>
+                        <div
+                          className="w-full rounded-t-md bg-primary/80 transition-all duration-300 min-h-[4px]"
+                          style={{ height: `${Math.max(pct, 4)}%` }}
+                        />
+                        <span className="text-[8px] text-muted-foreground truncate w-full text-center">
+                          {formatDate(e.date).split(" ")[1]}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-20 text-sm text-muted-foreground">
+                Start logging to see progress
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Table View */}
+        {view === "table" && (
+          <>
+            {entries.length > 0 ? (
+              <div className="max-h-52 overflow-y-auto space-y-1">
+                {[...entries].reverse().map((e, i) => {
+                  const prevEntry = entries[entries.length - 1 - i - 1];
+                  const change = prevEntry ? e.weight - prevEntry.weight : 0;
+                  return (
+                    <div
+                      key={e.date}
+                      className="flex items-center justify-between py-2 px-3 rounded-xl bg-muted/50 text-sm"
+                    >
+                      <span className="text-muted-foreground text-xs">{formatDate(e.date)}</span>
+                      <div className="flex items-center gap-3">
+                        <span className="font-semibold text-foreground">{e.weight} kg</span>
+                        {change !== 0 && (
+                          <span className={`text-xs flex items-center gap-0.5 ${change < 0 ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
+                            {change > 0 ? "+" : ""}{change.toFixed(1)}
+                          </span>
+                        )}
+                        <button
+                          onClick={() => deleteEntry(e.date)}
+                          className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                        >
+                          <Trash2 className="h-3 w-3" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="flex items-center justify-center h-20 text-sm text-muted-foreground">
+                No entries yet
+              </div>
+            )}
+          </>
         )}
       </div>
     </div>
