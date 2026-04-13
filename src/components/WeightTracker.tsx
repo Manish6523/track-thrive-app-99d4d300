@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { TrendingUp, TrendingDown, Plus, BarChart2, Table2, Trash2 } from "lucide-react";
+import { Area, AreaChart, CartesianGrid, XAxis } from "recharts";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 
 interface WeightEntry {
   date: string;
@@ -28,15 +35,23 @@ function formatDate(dateStr: string) {
   return d.toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
+const chartConfig = {
+  weight: {
+    label: "Weight",
+    color: "var(--chart-1)",
+  },
+} satisfies ChartConfig;
+
 const WeightTracker = () => {
   const [entries, setEntries] = useState<WeightEntry[]>(loadWeightHistory);
   const [input, setInput] = useState("");
   const [view, setView] = useState<"chart" | "table">("chart");
 
+  const today = new Date().toISOString().slice(0, 10);
+
   const addWeight = () => {
     const weight = parseFloat(input);
     if (isNaN(weight) || weight <= 0) return;
-    const today = new Date().toISOString().slice(0, 10);
     const updated = entries.filter((e) => e.date !== today);
     updated.push({ date: today, weight });
     updated.sort((a, b) => a.date.localeCompare(b.date));
@@ -47,6 +62,7 @@ const WeightTracker = () => {
   };
 
   const deleteEntry = (date: string) => {
+    if (date !== today) return;
     const updated = entries.filter((e) => e.date !== date);
     saveWeightHistory(updated);
     setEntries(updated);
@@ -56,38 +72,11 @@ const WeightTracker = () => {
   const prev = entries.length > 1 ? entries[entries.length - 2] : null;
   const diff = last && prev ? last.weight - prev.weight : 0;
 
-  // Area chart data
   const chartEntries = entries.slice(-14);
-  const weights = chartEntries.map((e) => e.weight);
-  const minW = weights.length > 0 ? Math.min(...weights) - 1 : 0;
-  const maxW = weights.length > 0 ? Math.max(...weights) + 1 : 100;
-  const range = maxW - minW || 1;
-
-  const chartW = 300;
-  const chartH = 140;
-  const padX = 4;
-  const padTop = 10;
-  const padBottom = 20;
-  const plotH = chartH - padTop - padBottom;
-  const plotW = chartW - padX * 2;
-
-  const points = chartEntries.map((e, i) => {
-    const x = padX + (chartEntries.length > 1 ? (i / (chartEntries.length - 1)) * plotW : plotW / 2);
-    const y = padTop + plotH - ((e.weight - minW) / range) * plotH;
-    return { x, y, entry: e };
-  });
-
-  const linePath = points.map((p, i) => {
-    if (i === 0) return `M${p.x},${p.y}`;
-    const prev = points[i - 1];
-    const cpx1 = prev.x + (p.x - prev.x) * 0.4;
-    const cpx2 = p.x - (p.x - prev.x) * 0.4;
-    return `C${cpx1},${prev.y} ${cpx2},${p.y} ${p.x},${p.y}`;
-  }).join(" ");
-
-  const areaPath = points.length > 0
-    ? `${linePath} L${points[points.length - 1].x},${chartH - padBottom} L${points[0].x},${chartH - padBottom} Z`
-    : "";
+  const chartData = chartEntries.map((e) => ({
+    date: formatDate(e.date),
+    weight: e.weight,
+  }));
 
   return (
     <div className="rounded-2xl bg-card border">
@@ -143,47 +132,34 @@ const WeightTracker = () => {
         {/* Area Chart View */}
         {view === "chart" && (
           <>
-            {chartEntries.length > 1 ? (
-              <div className="space-y-1">
-                <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full h-36" preserveAspectRatio="none">
-                  <defs>
-                    <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
-                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.02" />
-                    </linearGradient>
-                  </defs>
-                  {/* Area fill */}
-                  <path d={areaPath} fill="url(#areaGrad)" />
-                  {/* Line */}
-                  <path d={linePath} fill="none" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-                  {/* Last point dot */}
-                  {points.length > 0 && (
-                    <circle
-                      cx={points[points.length - 1].x}
-                      cy={points[points.length - 1].y}
-                      r="4"
-                      fill="hsl(var(--primary))"
-                      stroke="hsl(var(--background))"
-                      strokeWidth="2"
-                    />
-                  )}
-                </svg>
-                {/* X-axis labels */}
-                <div className="flex justify-between px-1">
-                  {chartEntries.filter((_, i) => {
-                    const step = Math.max(1, Math.floor(chartEntries.length / 5));
-                    return i % step === 0 || i === chartEntries.length - 1;
-                  }).map((e) => (
-                    <span key={e.date} className="text-[9px] text-muted-foreground">
-                      {formatDate(e.date).replace(" ", "\u00A0")}
-                    </span>
-                  ))}
-                </div>
-              </div>
-            ) : chartEntries.length === 1 ? (
-              <div className="flex items-center justify-center h-20 text-sm text-muted-foreground">
-                Log one more entry to see the chart
-              </div>
+            {chartData.length > 0 ? (
+              <ChartContainer config={chartConfig} className="h-40 w-full">
+                <AreaChart
+                  accessibilityLayer
+                  data={chartData}
+                  margin={{ left: 12, right: 12 }}
+                >
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="date"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                    tickFormatter={(value) => value.split(" ")[1]}
+                  />
+                  <ChartTooltip
+                    cursor={false}
+                    content={<ChartTooltipContent indicator="line" />}
+                  />
+                  <Area
+                    dataKey="weight"
+                    type="natural"
+                    fill="var(--color-weight)"
+                    fillOpacity={0.4}
+                    stroke="var(--color-weight)"
+                  />
+                </AreaChart>
+              </ChartContainer>
             ) : (
               <div className="flex items-center justify-center h-20 text-sm text-muted-foreground">
                 Start logging to see progress
@@ -200,6 +176,7 @@ const WeightTracker = () => {
                 {[...entries].reverse().map((e, i) => {
                   const prevEntry = entries[entries.length - 1 - i - 1];
                   const change = prevEntry ? e.weight - prevEntry.weight : 0;
+                  const isToday = e.date === today;
                   return (
                     <div
                       key={e.date}
@@ -213,12 +190,14 @@ const WeightTracker = () => {
                             {change > 0 ? "+" : ""}{change.toFixed(1)}
                           </span>
                         )}
-                        <button
-                          onClick={() => deleteEntry(e.date)}
-                          className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
-                        >
-                          <Trash2 className="h-3 w-3" />
-                        </button>
+                        {isToday && (
+                          <button
+                            onClick={() => deleteEntry(e.date)}
+                            className="text-muted-foreground hover:text-destructive transition-colors p-0.5"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </button>
+                        )}
                       </div>
                     </div>
                   );
