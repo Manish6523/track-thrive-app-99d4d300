@@ -56,11 +56,38 @@ const WeightTracker = () => {
   const prev = entries.length > 1 ? entries[entries.length - 2] : null;
   const diff = last && prev ? last.weight - prev.weight : 0;
 
+  // Area chart data
   const chartEntries = entries.slice(-14);
   const weights = chartEntries.map((e) => e.weight);
   const minW = weights.length > 0 ? Math.min(...weights) - 1 : 0;
   const maxW = weights.length > 0 ? Math.max(...weights) + 1 : 100;
   const range = maxW - minW || 1;
+
+  const chartW = 300;
+  const chartH = 140;
+  const padX = 4;
+  const padTop = 10;
+  const padBottom = 20;
+  const plotH = chartH - padTop - padBottom;
+  const plotW = chartW - padX * 2;
+
+  const points = chartEntries.map((e, i) => {
+    const x = padX + (chartEntries.length > 1 ? (i / (chartEntries.length - 1)) * plotW : plotW / 2);
+    const y = padTop + plotH - ((e.weight - minW) / range) * plotH;
+    return { x, y, entry: e };
+  });
+
+  const linePath = points.map((p, i) => {
+    if (i === 0) return `M${p.x},${p.y}`;
+    const prev = points[i - 1];
+    const cpx1 = prev.x + (p.x - prev.x) * 0.4;
+    const cpx2 = p.x - (p.x - prev.x) * 0.4;
+    return `C${cpx1},${prev.y} ${cpx2},${p.y} ${p.x},${p.y}`;
+  }).join(" ");
+
+  const areaPath = points.length > 0
+    ? `${linePath} L${points[points.length - 1].x},${chartH - padBottom} L${points[0].x},${chartH - padBottom} Z`
+    : "";
 
   return (
     <div className="rounded-2xl bg-card border">
@@ -81,7 +108,6 @@ const WeightTracker = () => {
               </div>
             )}
           </div>
-          {/* View toggle */}
           <div className="flex items-center bg-muted rounded-lg p-0.5">
             <button
               onClick={() => setView("chart")}
@@ -114,28 +140,49 @@ const WeightTracker = () => {
           </Button>
         </div>
 
-        {/* Chart View - Bar Chart */}
+        {/* Area Chart View */}
         {view === "chart" && (
           <>
-            {chartEntries.length > 0 ? (
-              <div className="space-y-2">
-                <div className="flex items-end gap-1 h-36">
-                  {chartEntries.map((e) => {
-                    const pct = ((e.weight - minW) / range) * 100;
-                    return (
-                      <div key={e.date} className="flex-1 flex flex-col items-center gap-1 h-full justify-end">
-                        <span className="text-[9px] font-medium text-muted-foreground">{e.weight}</span>
-                        <div
-                          className="w-full rounded-t-md bg-primary/80 transition-all duration-300 min-h-[4px]"
-                          style={{ height: `${Math.max(pct, 4)}%` }}
-                        />
-                        <span className="text-[8px] text-muted-foreground truncate w-full text-center">
-                          {formatDate(e.date).split(" ")[1]}
-                        </span>
-                      </div>
-                    );
-                  })}
+            {chartEntries.length > 1 ? (
+              <div className="space-y-1">
+                <svg viewBox={`0 0 ${chartW} ${chartH}`} className="w-full h-36" preserveAspectRatio="none">
+                  <defs>
+                    <linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
+                      <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0.02" />
+                    </linearGradient>
+                  </defs>
+                  {/* Area fill */}
+                  <path d={areaPath} fill="url(#areaGrad)" />
+                  {/* Line */}
+                  <path d={linePath} fill="none" stroke="hsl(var(--primary))" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
+                  {/* Last point dot */}
+                  {points.length > 0 && (
+                    <circle
+                      cx={points[points.length - 1].x}
+                      cy={points[points.length - 1].y}
+                      r="4"
+                      fill="hsl(var(--primary))"
+                      stroke="hsl(var(--background))"
+                      strokeWidth="2"
+                    />
+                  )}
+                </svg>
+                {/* X-axis labels */}
+                <div className="flex justify-between px-1">
+                  {chartEntries.filter((_, i) => {
+                    const step = Math.max(1, Math.floor(chartEntries.length / 5));
+                    return i % step === 0 || i === chartEntries.length - 1;
+                  }).map((e) => (
+                    <span key={e.date} className="text-[9px] text-muted-foreground">
+                      {formatDate(e.date).replace(" ", "\u00A0")}
+                    </span>
+                  ))}
                 </div>
+              </div>
+            ) : chartEntries.length === 1 ? (
+              <div className="flex items-center justify-center h-20 text-sm text-muted-foreground">
+                Log one more entry to see the chart
               </div>
             ) : (
               <div className="flex items-center justify-center h-20 text-sm text-muted-foreground">
