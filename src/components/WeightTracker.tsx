@@ -38,7 +38,7 @@ function formatDate(dateStr: string) {
 const chartConfig = {
   weight: {
     label: "Weight",
-    color: "var(--chart-1)",
+    color: "hsl(var(--chart-1))",
   },
 } satisfies ChartConfig;
 
@@ -133,7 +133,7 @@ const WeightTracker = () => {
         {view === "chart" && (
           <>
             {chartData.length > 0 ? (
-              <ChartContainer config={chartConfig} className="h-40 w-full">
+              <ChartContainer config={chartConfig} className="h-44 w-full">
                 <AreaChart
                   accessibilityLayer
                   data={chartData}
@@ -145,7 +145,10 @@ const WeightTracker = () => {
                     tickLine={false}
                     axisLine={false}
                     tickMargin={8}
-                    tickFormatter={(value) => value.split(" ")[1]}
+                    tickFormatter={(value) => {
+                      const parts = value.split(" ");
+                      return parts.length > 1 ? parts[1] : value;
+                    }}
                   />
                   <ChartTooltip
                     cursor={false}
@@ -157,6 +160,7 @@ const WeightTracker = () => {
                     fill="var(--color-weight)"
                     fillOpacity={0.4}
                     stroke="var(--color-weight)"
+                    strokeWidth={2}
                   />
                 </AreaChart>
               </ChartContainer>

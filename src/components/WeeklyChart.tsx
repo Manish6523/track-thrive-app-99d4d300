@@ -1,3 +1,10 @@
+import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import {
+  ChartContainer,
+  ChartTooltip,
+  ChartTooltipContent,
+  type ChartConfig,
+} from "@/components/ui/chart";
 import type { DayHistory } from "@/lib/fitness-data";
 
 interface WeeklyChartProps {
@@ -6,18 +13,31 @@ interface WeeklyChartProps {
 
 const DAY_LABELS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
+const chartConfig = {
+  workout: {
+    label: "Workout",
+    color: "hsl(var(--chart-1))",
+  },
+  diet: {
+    label: "Diet",
+    color: "hsl(var(--chart-2))",
+  },
+} satisfies ChartConfig;
+
 const WeeklyChart = ({ history }: WeeklyChartProps) => {
-  const days: { label: string; date: string; workoutPct: number; dietPct: number }[] = [];
+  const today = new Date().toISOString().slice(0, 10);
+
+  const chartData = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
     d.setDate(d.getDate() - i);
     const dateStr = d.toISOString().slice(0, 10);
     const entry = history.find((h) => h.date === dateStr);
-    days.push({
-      label: DAY_LABELS[d.getDay()],
-      date: dateStr,
-      workoutPct: entry?.workoutPct ?? 0,
-      dietPct: entry?.dietPct ?? 0,
+    chartData.push({
+      day: DAY_LABELS[d.getDay()],
+      workout: entry?.workoutPct ?? 0,
+      diet: entry?.dietPct ?? 0,
+      isToday: dateStr === today,
     });
   }
 
@@ -25,35 +45,35 @@ const WeeklyChart = ({ history }: WeeklyChartProps) => {
     <div className="rounded-2xl bg-card border p-5">
       <h3 className="text-sm font-semibold text-foreground mb-1">Weekly Overview</h3>
       <div className="flex gap-3 mb-4 text-[10px] text-muted-foreground">
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm bg-primary inline-block" /> Workout</span>
-        <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-sm inline-block" style={{ backgroundColor: "hsl(var(--success))" }} /> Diet</span>
+        <span className="flex items-center gap-1">
+          <span className="h-2 w-2 rounded-sm bg-[hsl(var(--chart-1))] inline-block" /> Workout
+        </span>
+        <span className="flex items-center gap-1">
+          <span className="h-2 w-2 rounded-sm bg-[hsl(var(--chart-2))] inline-block" /> Diet
+        </span>
       </div>
 
-      <div className="flex items-end gap-2 h-28">
-        {days.map((day) => {
-          const isToday = day.date === new Date().toISOString().slice(0, 10);
-          return (
-            <div key={day.date} className="flex-1 flex flex-col items-center gap-1.5">
-              <div className="w-full flex gap-0.5 items-end h-20">
-                <div
-                  className="flex-1 rounded-t bg-primary transition-all"
-                  style={{ height: `${Math.max(day.workoutPct > 0 ? 8 : 2, day.workoutPct)}%` }}
-                />
-                <div
-                  className="flex-1 rounded-t transition-all"
-                  style={{
-                    height: `${Math.max(day.dietPct > 0 ? 8 : 2, day.dietPct)}%`,
-                    backgroundColor: "hsl(var(--success))",
-                  }}
-                />
-              </div>
-              <span className={`text-[10px] font-medium ${isToday ? "text-primary" : "text-muted-foreground"}`}>
-                {day.label}
-              </span>
-            </div>
-          );
-        })}
-      </div>
+      <ChartContainer config={chartConfig} className="h-32 w-full">
+        <BarChart accessibilityLayer data={chartData}>
+          <CartesianGrid vertical={false} />
+          <XAxis
+            dataKey="day"
+            tickLine={false}
+            axisLine={false}
+            tickMargin={8}
+            tickFormatter={(value, index) => {
+              const item = chartData[index];
+              return item?.isToday ? `${value}` : value;
+            }}
+          />
+          <ChartTooltip
+            cursor={false}
+            content={<ChartTooltipContent />}
+          />
+          <Bar dataKey="workout" fill="var(--color-workout)" radius={[4, 4, 0, 0]} barSize={14} />
+          <Bar dataKey="diet" fill="var(--color-diet)" radius={[4, 4, 0, 0]} barSize={14} />
+        </BarChart>
+      </ChartContainer>
     </div>
   );
 };
