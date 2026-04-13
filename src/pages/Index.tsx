@@ -20,6 +20,8 @@ const TABS = [
 
 const Index = () => {
   const [activeTab, setActiveTab] = useState(0);
+  const [prevTab, setPrevTab] = useState(0);
+  const [isAnimating, setIsAnimating] = useState(false);
   const [workoutStats, setWorkoutStats] = useState({ completed: 0, total: 0 });
   const [dietStats, setDietStats] = useState({ completed: 0, total: 0 });
   const [streak, setStreak] = useState(() => loadStreak());
@@ -29,6 +31,14 @@ const Index = () => {
   const touchStart = useRef<number | null>(null);
   const touchEnd = useRef<number | null>(null);
   const minSwipeDistance = 50;
+
+  const switchTab = useCallback((newTab: number) => {
+    if (newTab === activeTab || isAnimating) return;
+    setPrevTab(activeTab);
+    setActiveTab(newTab);
+    setIsAnimating(true);
+    setTimeout(() => setIsAnimating(false), 300);
+  }, [activeTab, isAnimating]);
 
   const onTouchStart = (e: TouchEvent) => {
     touchEnd.current = null;
@@ -44,9 +54,9 @@ const Index = () => {
     const distance = touchStart.current - touchEnd.current;
     if (Math.abs(distance) < minSwipeDistance) return;
     if (distance > 0 && activeTab < TABS.length - 1) {
-      setActiveTab((p) => p + 1);
+      switchTab(activeTab + 1);
     } else if (distance < 0 && activeTab > 0) {
-      setActiveTab((p) => p - 1);
+      switchTab(activeTab - 1);
     }
   };
 
@@ -71,27 +81,34 @@ const Index = () => {
     setWeeklyHistory(loadWeeklyHistory());
   }, [overallCompleted, overallTotal, workoutPct, dietPct]);
 
+  const slideDirection = activeTab > prevTab ? "slide-left" : "slide-right";
+
   return (
     <div className="min-h-screen bg-background flex flex-col">
       {/* Content area */}
       <div
-        className="flex-1 overflow-y-auto pb-20"
+        className="flex-1 overflow-hidden pb-20"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        {activeTab === 0 && (
-          <HomeTab
-            workoutStats={workoutStats}
-            dietStats={dietStats}
-            streak={streak}
-            overallCompleted={overallCompleted}
-            overallTotal={overallTotal}
-          />
-        )}
-        {activeTab === 1 && <WorkoutTab onProgressChange={onWorkoutChange} />}
-        {activeTab === 2 && <DietTab onProgressChange={onDietChange} />}
-        {activeTab === 3 && <StatsTab weeklyHistory={weeklyHistory} />}
+        <div
+          key={activeTab}
+          className={`h-full overflow-y-auto animate-${slideDirection}`}
+        >
+          {activeTab === 0 && (
+            <HomeTab
+              workoutStats={workoutStats}
+              dietStats={dietStats}
+              streak={streak}
+              overallCompleted={overallCompleted}
+              overallTotal={overallTotal}
+            />
+          )}
+          {activeTab === 1 && <WorkoutTab onProgressChange={onWorkoutChange} />}
+          {activeTab === 2 && <DietTab onProgressChange={onDietChange} />}
+          {activeTab === 3 && <StatsTab weeklyHistory={weeklyHistory} />}
+        </div>
       </div>
 
       {/* Bottom Tab Bar */}
@@ -103,7 +120,7 @@ const Index = () => {
             return (
               <button
                 key={tab.id}
-                onClick={() => setActiveTab(i)}
+                onClick={() => switchTab(i)}
                 className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all ${
                   isActive
                     ? "text-primary"
