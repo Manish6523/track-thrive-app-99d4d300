@@ -65,14 +65,14 @@ const EditWorkoutDialog = ({ workouts, onSave }: EditWorkoutDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1.5">
+        <Button variant="outline" size="sm" className="gap-1.5 rounded-xl border-border/50 bg-card hover:bg-muted text-foreground">
           <Pencil className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Edit</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto bg-card border-border/50">
         <DialogHeader>
-          <DialogTitle>Edit Workout Plan</DialogTitle>
+          <DialogTitle className="text-foreground font-extrabold">Edit Workout Plan</DialogTitle>
         </DialogHeader>
 
         {/* Day selector */}
@@ -81,7 +81,7 @@ const EditWorkoutDialog = ({ workouts, onSave }: EditWorkoutDialogProps) => {
             <button
               key={day.day}
               onClick={() => setSelectedDay(i)}
-              className={`rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
+              className={`rounded-xl px-3 py-2 text-xs font-bold transition-all ${
                 i === selectedDay
                   ? "bg-primary text-primary-foreground"
                   : "bg-muted text-muted-foreground hover:text-foreground"
@@ -94,20 +94,18 @@ const EditWorkoutDialog = ({ workouts, onSave }: EditWorkoutDialogProps) => {
 
         {current && (
           <div className="space-y-3">
-            <div className="flex gap-2">
-              <Input
-                value={current.type}
-                onChange={(e) =>
-                  setData((prev) => {
-                    const next = [...prev];
-                    next[selectedDay] = { ...next[selectedDay], type: e.target.value };
-                    return next;
-                  })
-                }
-                placeholder="Workout type"
-                className="text-sm"
-              />
-            </div>
+            <Input
+              value={current.type}
+              onChange={(e) =>
+                setData((prev) => {
+                  const next = [...prev];
+                  next[selectedDay] = { ...next[selectedDay], type: e.target.value };
+                  return next;
+                })
+              }
+              placeholder="Workout type"
+              className="text-sm rounded-xl bg-muted border-border/50"
+            />
 
             <div className="space-y-2">
               {current.exercises.map((ex, i) => (
@@ -116,18 +114,18 @@ const EditWorkoutDialog = ({ workouts, onSave }: EditWorkoutDialogProps) => {
                     value={ex.name}
                     onChange={(e) => updateExercise(i, "name", e.target.value)}
                     placeholder="Exercise name"
-                    className="text-sm flex-1"
+                    className="text-sm flex-1 rounded-xl bg-muted border-border/50"
                   />
                   <Input
                     value={ex.sets}
                     onChange={(e) => updateExercise(i, "sets", e.target.value)}
                     placeholder="Sets"
-                    className="text-sm w-24"
+                    className="text-sm w-24 rounded-xl bg-muted border-border/50"
                   />
                   <Button
                     variant="ghost"
                     size="icon"
-                    className="h-8 w-8 shrink-0 text-destructive hover:text-destructive"
+                    className="h-8 w-8 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-xl"
                     onClick={() => removeExercise(i)}
                   >
                     <Trash2 className="h-3.5 w-3.5" />
@@ -136,16 +134,16 @@ const EditWorkoutDialog = ({ workouts, onSave }: EditWorkoutDialogProps) => {
               ))}
             </div>
 
-            <Button variant="outline" size="sm" onClick={addExercise} className="gap-1.5 w-full">
+            <Button variant="outline" size="sm" onClick={addExercise} className="gap-1.5 w-full rounded-xl border-dashed border-border/50 text-muted-foreground hover:text-foreground">
               <Plus className="h-3.5 w-3.5" /> Add Exercise
             </Button>
           </div>
         )}
 
         <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleSave} className="gap-1.5">
-            <Save className="h-3.5 w-3.5" /> Save Changes
+          <Button variant="outline" onClick={() => setOpen(false)} className="rounded-xl border-border/50">Cancel</Button>
+          <Button onClick={handleSave} className="gap-1.5 rounded-xl bg-primary hover:bg-primary/90 font-bold">
+            <Save className="h-3.5 w-3.5" /> Save
           </Button>
         </div>
       </DialogContent>

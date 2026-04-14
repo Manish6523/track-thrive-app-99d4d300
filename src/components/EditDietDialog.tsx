@@ -39,14 +39,14 @@ const EditDietDialog = ({ meals, onSave }: EditDietDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={handleOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className="gap-1.5">
+        <Button variant="outline" size="sm" className="gap-1.5 rounded-xl border-border/50 bg-card hover:bg-muted text-foreground">
           <Pencil className="h-3.5 w-3.5" />
           <span className="hidden sm:inline">Edit</span>
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto">
+      <DialogContent className="max-w-lg max-h-[85vh] overflow-y-auto bg-card border-border/50">
         <DialogHeader>
-          <DialogTitle>Edit Diet Plan</DialogTitle>
+          <DialogTitle className="text-foreground font-extrabold">Edit Diet Plan</DialogTitle>
         </DialogHeader>
 
         <div className="space-y-3">
@@ -58,26 +58,26 @@ const EditDietDialog = ({ meals, onSave }: EditDietDialogProps) => {
                     value={meal.time}
                     onChange={(e) => updateMeal(i, "time", e.target.value)}
                     placeholder="Time"
-                    className="text-sm w-24"
+                    className="text-sm w-24 rounded-xl bg-muted border-border/50"
                   />
                   <Input
                     value={meal.name}
                     onChange={(e) => updateMeal(i, "name", e.target.value)}
                     placeholder="Meal name"
-                    className="text-sm flex-1"
+                    className="text-sm flex-1 rounded-xl bg-muted border-border/50"
                   />
                 </div>
                 <Input
                   value={meal.food}
                   onChange={(e) => updateMeal(i, "food", e.target.value)}
                   placeholder="Food items"
-                  className="text-sm"
+                  className="text-sm rounded-xl bg-muted border-border/50"
                 />
               </div>
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 shrink-0 text-destructive hover:text-destructive mt-0.5"
+                className="h-8 w-8 shrink-0 text-destructive hover:text-destructive hover:bg-destructive/10 rounded-xl mt-0.5"
                 onClick={() => removeMeal(i)}
               >
                 <Trash2 className="h-3.5 w-3.5" />
@@ -86,14 +86,14 @@ const EditDietDialog = ({ meals, onSave }: EditDietDialogProps) => {
           ))}
         </div>
 
-        <Button variant="outline" size="sm" onClick={addMeal} className="gap-1.5 w-full">
+        <Button variant="outline" size="sm" onClick={addMeal} className="gap-1.5 w-full rounded-xl border-dashed border-border/50 text-muted-foreground hover:text-foreground">
           <Plus className="h-3.5 w-3.5" /> Add Meal
         </Button>
 
         <div className="flex justify-end gap-2 mt-4">
-          <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
-          <Button onClick={handleSave} className="gap-1.5">
-            <Save className="h-3.5 w-3.5" /> Save Changes
+          <Button variant="outline" onClick={() => setOpen(false)} className="rounded-xl border-border/50">Cancel</Button>
+          <Button onClick={handleSave} className="gap-1.5 rounded-xl bg-primary hover:bg-primary/90 font-bold">
+            <Save className="h-3.5 w-3.5" /> Save
           </Button>
         </div>
       </DialogContent>
