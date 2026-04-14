@@ -42,36 +42,35 @@ const WeeklyChart = ({ history }: WeeklyChartProps) => {
   }
 
   return (
-    <div className="rounded-2xl bg-card border p-5">
-      <h3 className="text-sm font-semibold text-foreground mb-1">Weekly Overview</h3>
-      <div className="flex gap-3 mb-4 text-[10px] text-muted-foreground">
-        <span className="flex items-center gap-1">
-          <span className="h-2 w-2 rounded-sm bg-[hsl(var(--chart-1))] inline-block" /> Workout
-        </span>
-        <span className="flex items-center gap-1">
-          <span className="h-2 w-2 rounded-sm bg-[hsl(var(--chart-2))] inline-block" /> Diet
-        </span>
+    <div className="rounded-2xl bg-card border border-border/50 p-5">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-bold text-foreground">Weekly Overview</h3>
+        <div className="flex gap-3 text-[10px] text-muted-foreground">
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-primary inline-block" /> Workout
+          </span>
+          <span className="flex items-center gap-1.5">
+            <span className="h-2.5 w-2.5 rounded-full bg-[hsl(var(--chart-2))] inline-block" /> Diet
+          </span>
+        </div>
       </div>
 
-      <ChartContainer config={chartConfig} className="h-32 w-full">
+      <ChartContainer config={chartConfig} className="h-36 w-full">
         <BarChart accessibilityLayer data={chartData}>
-          <CartesianGrid vertical={false} />
+          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
           <XAxis
             dataKey="day"
             tickLine={false}
             axisLine={false}
             tickMargin={8}
-            tickFormatter={(value, index) => {
-              const item = chartData[index];
-              return item?.isToday ? `${value}` : value;
-            }}
+            tick={{ fontSize: 10, fontWeight: 600 }}
           />
           <ChartTooltip
             cursor={false}
             content={<ChartTooltipContent />}
           />
-          <Bar dataKey="workout" fill="var(--color-workout)" radius={[4, 4, 0, 0]} barSize={14} />
-          <Bar dataKey="diet" fill="var(--color-diet)" radius={[4, 4, 0, 0]} barSize={14} />
+          <Bar dataKey="workout" fill="var(--color-workout)" radius={[6, 6, 0, 0]} barSize={12} />
+          <Bar dataKey="diet" fill="var(--color-diet)" radius={[6, 6, 0, 0]} barSize={12} />
         </BarChart>
       </ChartContainer>
     </div>

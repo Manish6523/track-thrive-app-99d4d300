@@ -27,7 +27,6 @@ const Index = () => {
   const [streak, setStreak] = useState(() => loadStreak());
   const [weeklyHistory, setWeeklyHistory] = useState(() => loadWeeklyHistory());
 
-  // Swipe handling
   const touchStart = useRef<number | null>(null);
   const touchEnd = useRef<number | null>(null);
   const minSwipeDistance = 50;
@@ -37,7 +36,7 @@ const Index = () => {
     setPrevTab(activeTab);
     setActiveTab(newTab);
     setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 300);
+    setTimeout(() => setIsAnimating(false), 380);
   }, [activeTab, isAnimating]);
 
   const onTouchStart = (e: TouchEvent) => {
@@ -111,9 +110,9 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Bottom Tab Bar */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-card/95 backdrop-blur-lg border-t z-50 safe-area-bottom">
-        <div className="flex items-center justify-around px-2 py-1.5">
+      {/* Bottom Tab Bar — dark glass style */}
+      <nav className="fixed bottom-0 left-0 right-0 glass-card border-t border-border/50 z-50 safe-area-bottom">
+        <div className="flex items-center justify-around px-2 py-2">
           {TABS.map((tab, i) => {
             const Icon = tab.icon;
             const isActive = activeTab === i;
@@ -121,14 +120,22 @@ const Index = () => {
               <button
                 key={tab.id}
                 onClick={() => switchTab(i)}
-                className={`flex flex-col items-center gap-0.5 px-4 py-1.5 rounded-xl transition-all ${
+                className={`relative flex flex-col items-center gap-0.5 px-5 py-2 rounded-2xl transition-all duration-300 ${
                   isActive
                     ? "text-primary"
                     : "text-muted-foreground"
                 }`}
               >
-                <Icon className={`h-5 w-5 transition-all ${isActive ? "scale-110" : ""}`} strokeWidth={isActive ? 2.5 : 1.8} />
-                <span className={`text-[10px] font-medium ${isActive ? "text-primary" : ""}`}>{tab.label}</span>
+                {isActive && (
+                  <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-6 h-1 rounded-full bg-primary" />
+                )}
+                <Icon
+                  className={`h-5 w-5 transition-all duration-300 ${isActive ? "scale-110" : ""}`}
+                  strokeWidth={isActive ? 2.5 : 1.8}
+                />
+                <span className={`text-[10px] font-semibold transition-all ${isActive ? "text-primary" : ""}`}>
+                  {tab.label}
+                </span>
               </button>
             );
           })}
