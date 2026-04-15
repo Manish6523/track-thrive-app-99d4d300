@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef, TouchEvent } from "react";
-import { Home, Dumbbell, UtensilsCrossed, BarChart3 } from "lucide-react";
+import { Home, Dumbbell, UtensilsCrossed, BarChart3, Activity } from "lucide-react";
 import HomeTab from "@/components/tabs/HomeTab";
 import WorkoutTab from "@/components/tabs/WorkoutTab";
 import DietTab from "@/components/tabs/DietTab";
@@ -15,7 +15,7 @@ const TABS = [
   { id: "home", label: "Home", icon: Home },
   { id: "workout", label: "Workout", icon: Dumbbell },
   { id: "diet", label: "Diet", icon: UtensilsCrossed },
-  { id: "stats", label: "Stats", icon: BarChart3 },
+  { id: "stats", label: "Stats", icon: Activity },
 ] as const;
 
 const Index = () => {
@@ -36,7 +36,7 @@ const Index = () => {
     setPrevTab(activeTab);
     setActiveTab(newTab);
     setIsAnimating(true);
-    setTimeout(() => setIsAnimating(false), 380);
+    setTimeout(() => setIsAnimating(false), 400);
   }, [activeTab, isAnimating]);
 
   const onTouchStart = (e: TouchEvent) => {
@@ -79,7 +79,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background flex flex-col">
       <div
-        className="flex-1 overflow-hidden pb-[72px]"
+        className="flex-1 overflow-hidden pb-20"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -96,8 +96,8 @@ const Index = () => {
 
       {/* Bottom Nav */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
-        <div className="mx-3 mb-2 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/30 shadow-2xl shadow-background/80">
-          <div className="flex items-center justify-around px-1 py-1.5">
+        <div className="mx-4 mb-3 rounded-2xl glass border border-border/40">
+          <div className="flex items-center justify-around px-2 py-2">
             {TABS.map((tab, i) => {
               const Icon = tab.icon;
               const isActive = activeTab === i;
@@ -105,18 +105,18 @@ const Index = () => {
                 <button
                   key={tab.id}
                   onClick={() => switchTab(i)}
-                  className={`relative flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl transition-all duration-300 ${
+                  className={`relative flex flex-col items-center gap-1 px-5 py-2 rounded-xl transition-all duration-300 ${
                     isActive ? "text-primary" : "text-muted-foreground"
                   }`}
                 >
                   {isActive && (
-                    <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-primary shadow-lg shadow-primary/50" />
+                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-primary" />
                   )}
                   <Icon
                     className={`h-5 w-5 transition-all duration-300 ${isActive ? "scale-110" : ""}`}
                     strokeWidth={isActive ? 2.5 : 1.8}
                   />
-                  <span className={`text-[9px] font-bold transition-all ${isActive ? "text-primary" : ""}`}>
+                  <span className={`text-[9px] font-bold tracking-wide ${isActive ? "text-primary" : ""}`}>
                     {tab.label}
                   </span>
                 </button>
