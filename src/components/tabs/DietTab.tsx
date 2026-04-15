@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Check, Clock, Apple } from "lucide-react";
+import { Check, Clock, Apple, Flame } from "lucide-react";
 import { loadProgress, saveProgress } from "@/lib/fitness-data";
 import { loadCustomDiet, saveCustomDiet } from "@/lib/fitness-store";
 import EditDietDialog from "@/components/EditDietDialog";
@@ -34,41 +34,73 @@ const DietTab = ({ onProgressChange }: DietTabProps) => {
   const completedCount = Object.values(checked).filter(Boolean).length;
   const pct = meals.length === 0 ? 0 : Math.round((completedCount / meals.length) * 100);
 
+  // Calorie estimates from diet
+  const totalCalories = 1200;
+  const consumedCalories = Math.round(totalCalories * (pct / 100));
+
   return (
-    <div className="px-4 pt-12 pb-6 space-y-5">
+    <div className="px-5 pt-14 pb-6 space-y-5">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between animate-fade-up">
         <div>
-          <p className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">Nutrition</p>
-          <h1 className="text-xl font-extrabold text-foreground mt-0.5">Diet Plan</h1>
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em]" style={{ color: 'hsl(270, 60%, 75%)' }}>
+            Nutrition
+          </p>
+          <h1 className="text-xl font-extrabold text-foreground mt-0.5" style={{ fontStyle: 'italic' }}>
+            Diet Plan
+          </h1>
         </div>
         <EditDietDialog meals={meals} onSave={handleSaveMeals} />
       </div>
 
-      {/* Progress Card */}
-      <div className="rounded-2xl bg-gradient-to-br from-secondary/15 to-transparent border border-secondary/20 p-4">
-        <div className="flex items-center justify-between">
+      {/* Progress Card - Lavender */}
+      <div className="animate-fade-up rounded-2xl overflow-hidden" style={{ background: 'hsl(270, 60%, 82%)' }}>
+        <div className="p-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="h-10 w-10 rounded-xl bg-secondary/20 flex items-center justify-center">
-              <Apple className="h-5 w-5 text-secondary" />
+            <div className="h-12 w-12 rounded-xl bg-black/10 flex items-center justify-center">
+              <Apple className="h-6 w-6 text-black/50" />
             </div>
             <div>
-              <p className="text-sm font-bold text-foreground">Meals</p>
-              <p className="text-[10px] text-muted-foreground">{completedCount}/{meals.length} completed</p>
+              <p className="text-sm font-bold text-black">Meals</p>
+              <p className="text-[10px] text-black/60 font-medium">{completedCount}/{meals.length} completed</p>
             </div>
           </div>
-          <span className="text-2xl font-black text-secondary">{pct}%</span>
+          <div className="text-right">
+            <span className="text-3xl font-black text-black">{pct}%</span>
+          </div>
         </div>
-        <div className="mt-3 h-2 rounded-full bg-muted overflow-hidden">
-          <div
-            className="h-full rounded-full bg-secondary transition-all duration-700"
-            style={{ width: `${pct}%` }}
-          />
+        <div className="px-4 pb-4">
+          <div className="h-2 rounded-full bg-black/10 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-black/30 transition-all duration-700"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Calorie summary mini card */}
+      <div className="animate-fade-up grid grid-cols-2 gap-3">
+        <div className="rounded-2xl p-3.5" style={{ background: 'hsl(72, 70%, 55%)' }}>
+          <div className="flex items-center gap-2 mb-1">
+            <Flame className="h-3.5 w-3.5 text-black/40" />
+            <span className="text-[10px] font-bold text-black/50 uppercase">Consumed</span>
+          </div>
+          <p className="text-xl font-black text-black">{consumedCalories}</p>
+          <p className="text-[10px] text-black/50 font-bold">Kcal</p>
+        </div>
+        <div className="rounded-2xl p-3.5 bg-card border border-border/40">
+          <div className="flex items-center gap-2 mb-1">
+            <Flame className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-[10px] font-bold text-muted-foreground uppercase">Remaining</span>
+          </div>
+          <p className="text-xl font-black text-foreground">{totalCalories - consumedCalories}</p>
+          <p className="text-[10px] text-muted-foreground font-bold">Kcal</p>
         </div>
       </div>
 
       {/* Meal List */}
-      <div className="space-y-1.5 stagger">
+      <div className="space-y-2 stagger">
         {meals.map((meal, idx) => {
           const key = meal.time;
           const isDone = checked[key];
@@ -76,20 +108,22 @@ const DietTab = ({ onProgressChange }: DietTabProps) => {
             <button
               key={key}
               onClick={() => toggle(key)}
-              className={`animate-fade-up w-full flex items-center gap-3 rounded-xl p-3.5 text-left transition-all duration-200 active:scale-[0.98] ${
+              className={`animate-fade-up w-full flex items-center gap-3 rounded-2xl p-4 text-left transition-all duration-200 active:scale-[0.98] ${
                 isDone
-                  ? "bg-secondary/10 border border-secondary/25"
+                  ? "border border-secondary/25"
                   : "bg-card border border-border/40 hover:border-secondary/20"
               }`}
+              style={isDone ? { background: 'hsl(270, 60%, 82%, 0.15)' } : {}}
             >
-              <div className={`h-7 w-7 rounded-lg border-2 flex items-center justify-center shrink-0 transition-all ${
+              <div className={`h-8 w-8 rounded-xl border-2 flex items-center justify-center shrink-0 transition-all ${
                 isDone ? "border-secondary bg-secondary" : "border-muted-foreground/20"
               }`}>
-                {isDone && <Check className="h-3.5 w-3.5 text-secondary-foreground" strokeWidth={3} />}
+                {isDone && <Check className="h-4 w-4 text-black" strokeWidth={3} />}
               </div>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
-                  <span className={`text-sm font-bold ${isDone ? "text-secondary line-through" : "text-foreground"}`}>
+                  <span className={`text-sm font-bold ${isDone ? "line-through" : "text-foreground"}`}
+                    style={isDone ? { color: 'hsl(270, 60%, 75%)' } : {}}>
                     {meal.name}
                   </span>
                   <span className="flex items-center gap-0.5 text-[9px] text-muted-foreground bg-muted px-1.5 py-0.5 rounded-md font-medium">

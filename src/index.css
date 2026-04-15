@@ -6,32 +6,32 @@
 
 @layer base {
   :root {
-    --background: 240 12% 5%;
+    --background: 0 0% 7%;
     --foreground: 0 0% 96%;
 
-    --card: 240 10% 9%;
+    --card: 0 0% 11%;
     --card-foreground: 0 0% 96%;
 
-    --popover: 240 10% 9%;
+    --popover: 0 0% 11%;
     --popover-foreground: 0 0% 96%;
 
     --primary: 72 100% 50%;
     --primary-foreground: 0 0% 0%;
 
-    --secondary: 270 60% 65%;
-    --secondary-foreground: 0 0% 100%;
+    --secondary: 270 60% 75%;
+    --secondary-foreground: 0 0% 0%;
 
-    --muted: 240 8% 14%;
-    --muted-foreground: 240 5% 50%;
+    --muted: 0 0% 16%;
+    --muted-foreground: 0 0% 55%;
 
-    --accent: 270 60% 65%;
+    --accent: 270 60% 75%;
     --accent-foreground: 0 0% 100%;
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 8% 16%;
-    --input: 240 8% 16%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
     --ring: 72 100% 50%;
 
     --radius: 1rem;
@@ -39,17 +39,21 @@
     --success: 152 60% 45%;
     --success-foreground: 0 0% 100%;
 
-    --sidebar-background: 240 12% 6%;
+    --lime: 72 100% 50%;
+    --lavender: 270 60% 75%;
+    --mint: 160 50% 70%;
+
+    --sidebar-background: 0 0% 8%;
     --sidebar-foreground: 0 0% 90%;
     --sidebar-primary: 72 100% 50%;
     --sidebar-primary-foreground: 0 0% 0%;
     --sidebar-accent: 270 60% 65%;
     --sidebar-accent-foreground: 0 0% 100%;
-    --sidebar-border: 240 8% 16%;
+    --sidebar-border: 0 0% 16%;
     --sidebar-ring: 72 100% 50%;
 
     --chart-1: 72 100% 50%;
-    --chart-2: 270 60% 65%;
+    --chart-2: 270 60% 75%;
     --chart-3: 152 60% 45%;
     --chart-4: 340 75% 55%;
     --chart-5: 200 80% 55%;
@@ -65,6 +69,7 @@
     font-family: 'Plus Jakarta Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: none;
   }
 }
 
@@ -87,12 +92,28 @@
   to { transform: translateX(0); opacity: 1; }
 }
 @keyframes fade-up {
-  from { opacity: 0; transform: translateY(12px); }
+  from { opacity: 0; transform: translateY(16px); }
   to { opacity: 1; transform: translateY(0); }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 @keyframes pulse-glow {
   0%, 100% { box-shadow: 0 0 20px hsl(72 100% 50% / 0.15); }
   50% { box-shadow: 0 0 30px hsl(72 100% 50% / 0.3); }
+}
+@keyframes scale-in {
+  from { transform: scale(0.9); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+@keyframes timer-pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+@keyframes count-up {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-slide-left {
@@ -102,10 +123,22 @@
   animation: slide-right-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .animate-fade-up {
-  animation: fade-up 0.4s ease-out both;
+  animation: fade-up 0.5s ease-out both;
+}
+.animate-fade-in {
+  animation: fade-in 0.4s ease-out both;
 }
 .animate-pulse-glow {
   animation: pulse-glow 2s ease-in-out infinite;
+}
+.animate-scale-in {
+  animation: scale-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+.animate-timer-pulse {
+  animation: timer-pulse 1s ease-in-out infinite;
+}
+.animate-count-up {
+  animation: count-up 0.6s ease-out both;
 }
 
 /* Stagger children */
@@ -123,12 +156,12 @@
   box-shadow: 0 0 24px hsl(72 100% 50% / 0.2), 0 0 60px hsl(72 100% 50% / 0.06);
 }
 .glow-purple {
-  box-shadow: 0 0 24px hsl(270 60% 65% / 0.2), 0 0 60px hsl(270 60% 65% / 0.06);
+  box-shadow: 0 0 24px hsl(270 60% 75% / 0.2), 0 0 60px hsl(270 60% 75% / 0.06);
 }
 
 /* Glass */
 .glass {
-  background: hsl(240 10% 9% / 0.8);
+  background: hsl(0 0% 10% / 0.85);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
 }
@@ -142,3 +175,37 @@
 ::-webkit-scrollbar {
   width: 0px;
 }
+
+/* Donut ring animation */
+@keyframes draw-ring {
+  from { stroke-dashoffset: var(--circumference); }
+  to { stroke-dashoffset: var(--offset); }
+}
+
+.donut-ring {
+  animation: draw-ring 1.2s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Card hover effects */
+.card-hover {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.card-hover:active {
+  transform: scale(0.97);
+}
+
+/* Workout card images */
+.workout-card-img {
+  object-fit: cover;
+  object-position: center top;
+}
+
+/* Bottom nav pill indicator */
+.nav-pill {
+  transition: all 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Calorie ring colors */
+.ring-lime { stroke: hsl(72, 100%, 50%); }
+.ring-lavender { stroke: hsl(270, 60%, 75%); }
+.ring-mint { stroke: hsl(160, 50%, 70%); }

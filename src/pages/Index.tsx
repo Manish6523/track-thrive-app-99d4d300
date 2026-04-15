@@ -1,7 +1,8 @@
 import { useState, useCallback, useEffect, useRef, TouchEvent } from "react";
-import { Home, Dumbbell, UtensilsCrossed, BarChart3, Activity } from "lucide-react";
+import { Home, Dumbbell, UtensilsCrossed, Timer, BarChart3 } from "lucide-react";
 import HomeTab from "@/components/tabs/HomeTab";
 import WorkoutTab from "@/components/tabs/WorkoutTab";
+import ActiveWorkoutTab from "@/components/tabs/ActiveWorkoutTab";
 import DietTab from "@/components/tabs/DietTab";
 import StatsTab from "@/components/tabs/StatsTab";
 import {
@@ -11,11 +12,13 @@ import {
   saveToWeeklyHistory,
 } from "@/lib/fitness-data";
 
+// Tab order: Home, Workout, Meal, Timer, Dashboard
 const TABS = [
   { id: "home", label: "Home", icon: Home },
   { id: "workout", label: "Workout", icon: Dumbbell },
-  { id: "diet", label: "Diet", icon: UtensilsCrossed },
-  { id: "stats", label: "Stats", icon: Activity },
+  { id: "meal", label: "Meal", icon: UtensilsCrossed },
+  { id: "timer", label: "Timer", icon: Timer },
+  { id: "dashboard", label: "Dashboard", icon: BarChart3 },
 ] as const;
 
 const Index = () => {
@@ -76,10 +79,13 @@ const Index = () => {
 
   const slideDirection = activeTab > prevTab ? "slide-left" : "slide-right";
 
+  // Timer tab is full-screen
+  const isFullScreenTab = activeTab === 3;
+
   return (
-    <div className="min-h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-background flex flex-col max-w-md mx-auto relative">
       <div
-        className="flex-1 overflow-hidden pb-20"
+        className={`flex-1 overflow-hidden ${isFullScreenTab ? '' : 'pb-24'}`}
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -90,35 +96,60 @@ const Index = () => {
           )}
           {activeTab === 1 && <WorkoutTab onProgressChange={onWorkoutChange} />}
           {activeTab === 2 && <DietTab onProgressChange={onDietChange} />}
-          {activeTab === 3 && <StatsTab weeklyHistory={weeklyHistory} />}
+          {activeTab === 3 && <ActiveWorkoutTab />}
+          {activeTab === 4 && <StatsTab weeklyHistory={weeklyHistory} />}
         </div>
       </div>
 
-      {/* Bottom Nav */}
+      {/* ─── Bottom Navigation Bar (matches reference image) ─── */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
-        <div className="mx-4 mb-3 rounded-2xl glass border border-border/40">
-          <div className="flex items-center justify-around px-2 py-2">
+        <div className="max-w-md mx-auto px-5 pb-4">
+          <div
+            className="rounded-[28px] py-2.5 px-3 flex items-center justify-around"
+            style={{
+              background: 'rgba(28, 28, 30, 0.92)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255,255,255,0.06)',
+            }}
+          >
             {TABS.map((tab, i) => {
               const Icon = tab.icon;
               const isActive = activeTab === i;
+
               return (
                 <button
                   key={tab.id}
+                  id={`nav-${tab.id}`}
                   onClick={() => switchTab(i)}
-                  className={`relative flex flex-col items-center gap-1 px-5 py-2 rounded-xl transition-all duration-300 ${
-                    isActive ? "text-primary" : "text-muted-foreground"
-                  }`}
+                  className="relative flex items-center justify-center transition-all duration-300"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  {isActive && (
-                    <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-8 h-1 rounded-full bg-primary" />
-                  )}
-                  <Icon
-                    className={`h-5 w-5 transition-all duration-300 ${isActive ? "scale-110" : ""}`}
-                    strokeWidth={isActive ? 2.5 : 1.8}
-                  />
-                  <span className={`text-[9px] font-bold tracking-wide ${isActive ? "text-primary" : ""}`}>
-                    {tab.label}
-                  </span>
+                  <div
+                    className={`h-11 w-11 rounded-full flex items-center justify-center transition-all duration-300 ${
+                      isActive
+                        ? 'scale-105'
+                        : 'scale-100'
+                    }`}
+                    style={
+                      isActive
+                        ? {
+                            background: 'hsl(270, 50%, 80%)',
+                            boxShadow: '0 2px 12px hsl(270 50% 80% / 0.35)',
+                          }
+                        : { background: 'transparent' }
+                    }
+                  >
+                    <Icon
+                      className="h-[20px] w-[20px] transition-all duration-300"
+                      strokeWidth={isActive ? 2.4 : 1.6}
+                      style={{
+                        color: isActive
+                          ? 'hsl(270, 20%, 20%)'
+                          : 'hsl(0, 0%, 45%)',
+                      }}
+                    />
+                  </div>
                 </button>
               );
             })}

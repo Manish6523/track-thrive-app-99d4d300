@@ -1,4 +1,4 @@
-import { Bar, BarChart, CartesianGrid, XAxis } from "recharts";
+import { Bar, BarChart, CartesianGrid, XAxis, ResponsiveContainer } from "recharts";
 import {
   ChartContainer,
   ChartTooltip,
@@ -25,8 +25,6 @@ const chartConfig = {
 } satisfies ChartConfig;
 
 const WeeklyChart = ({ history }: WeeklyChartProps) => {
-  const today = new Date().toISOString().slice(0, 10);
-
   const chartData = [];
   for (let i = 6; i >= 0; i--) {
     const d = new Date();
@@ -54,21 +52,25 @@ const WeeklyChart = ({ history }: WeeklyChartProps) => {
         </div>
       </div>
 
-      <ChartContainer config={chartConfig} className="h-40 w-full">
-        <BarChart accessibilityLayer data={chartData}>
-          <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
-          <XAxis
-            dataKey="day"
-            tickLine={false}
-            axisLine={false}
-            tickMargin={8}
-            tick={{ fontSize: 10, fontWeight: 700 }}
-          />
-          <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-          <Bar dataKey="workout" fill="var(--color-workout)" radius={[8, 8, 0, 0]} barSize={14} />
-          <Bar dataKey="diet" fill="var(--color-diet)" radius={[8, 8, 0, 0]} barSize={14} />
-        </BarChart>
-      </ChartContainer>
+      <div style={{ width: '100%', height: 160 }}>
+        <ChartContainer config={chartConfig} className="h-full w-full">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart accessibilityLayer data={chartData}>
+              <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
+              <XAxis
+                dataKey="day"
+                tickLine={false}
+                axisLine={false}
+                tickMargin={8}
+                tick={{ fontSize: 10, fontWeight: 700 }}
+              />
+              <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+              <Bar dataKey="workout" fill="var(--color-workout)" radius={[8, 8, 0, 0]} barSize={14} />
+              <Bar dataKey="diet" fill="var(--color-diet)" radius={[8, 8, 0, 0]} barSize={14} />
+            </BarChart>
+          </ResponsiveContainer>
+        </ChartContainer>
+      </div>
     </div>
   );
 };

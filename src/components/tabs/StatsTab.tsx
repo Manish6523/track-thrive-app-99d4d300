@@ -8,10 +8,12 @@ interface StatsTabProps {
 
 const StatsTab = ({ weeklyHistory }: StatsTabProps) => {
   return (
-    <div className="px-4 pt-12 pb-6 space-y-5">
-      <div>
+    <div className="px-5 pt-14 pb-6 space-y-5">
+      <div className="animate-fade-up">
         <p className="text-[10px] font-bold text-[hsl(var(--chart-5))] uppercase tracking-[0.2em]">Analytics</p>
-        <h1 className="text-xl font-extrabold text-foreground mt-0.5">Statistics</h1>
+        <h1 className="text-xl font-extrabold text-foreground mt-0.5" style={{ fontStyle: 'italic' }}>
+          Statistics
+        </h1>
       </div>
       <WeeklyChart history={weeklyHistory} />
       <WeightTracker />
