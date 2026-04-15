@@ -1,6 +1,7 @@
 export interface Exercise {
   name: string;
   sets: string;
+  group?: string;
 }
 
 export interface WorkoutDay {
@@ -33,11 +34,11 @@ export const WORKOUT_DATA: WorkoutDay[] = [
     type: "Push",
     isRest: false,
     exercises: [
-      { name: "Bench Press", sets: "4×8-10" },
-      { name: "Incline DB Press", sets: "3×10" },
-      { name: "Shoulder Press", sets: "3×10" },
-      { name: "Lateral Raise", sets: "3×12-15" },
-      { name: "Tricep Pushdown", sets: "3×12" },
+      { name: "Bench Press", sets: "4×8-10", group: "Chest" },
+      { name: "Incline DB Press", sets: "3×10", group: "Chest" },
+      { name: "Shoulder Press", sets: "3×10", group: "Shoulders" },
+      { name: "Lateral Raise", sets: "3×12-15", group: "Shoulders" },
+      { name: "Tricep Pushdown", sets: "3×12", group: "Triceps" },
     ],
   },
   {
@@ -45,11 +46,11 @@ export const WORKOUT_DATA: WorkoutDay[] = [
     type: "Pull",
     isRest: false,
     exercises: [
-      { name: "Lat Pulldown", sets: "4×8-10" },
-      { name: "Seated Row", sets: "3×10" },
-      { name: "Deadlift", sets: "3×6-8" },
-      { name: "Dumbbell Curl", sets: "3×10" },
-      { name: "Hammer Curl", sets: "3×12" },
+      { name: "Lat Pulldown", sets: "4×8-10", group: "Back" },
+      { name: "Seated Row", sets: "3×10", group: "Back" },
+      { name: "Deadlift", sets: "3×6-8", group: "Back" },
+      { name: "Dumbbell Curl", sets: "3×10", group: "Biceps" },
+      { name: "Hammer Curl", sets: "3×12", group: "Biceps" },
     ],
   },
   {
@@ -57,11 +58,11 @@ export const WORKOUT_DATA: WorkoutDay[] = [
     type: "Legs",
     isRest: false,
     exercises: [
-      { name: "Squats", sets: "4×8" },
-      { name: "Leg Press", sets: "3×10" },
-      { name: "Leg Curl", sets: "3×12" },
-      { name: "Calf Raise", sets: "4×15" },
-      { name: "Lunges", sets: "2×12 each" },
+      { name: "Squats", sets: "4×8", group: "Quads" },
+      { name: "Leg Press", sets: "3×10", group: "Quads" },
+      { name: "Leg Curl", sets: "3×12", group: "Hamstrings" },
+      { name: "Calf Raise", sets: "4×15", group: "Calves" },
+      { name: "Lunges", sets: "2×12 each", group: "Quads" },
     ],
   },
   {
@@ -75,11 +76,11 @@ export const WORKOUT_DATA: WorkoutDay[] = [
     type: "Push",
     isRest: false,
     exercises: [
-      { name: "Bench Press", sets: "4×8-10" },
-      { name: "Incline DB Press", sets: "3×10" },
-      { name: "Shoulder Press", sets: "3×10" },
-      { name: "Lateral Raise", sets: "3×12-15" },
-      { name: "Tricep Pushdown", sets: "3×12" },
+      { name: "Bench Press", sets: "4×8-10", group: "Chest" },
+      { name: "Incline DB Press", sets: "3×10", group: "Chest" },
+      { name: "Shoulder Press", sets: "3×10", group: "Shoulders" },
+      { name: "Lateral Raise", sets: "3×12-15", group: "Shoulders" },
+      { name: "Tricep Pushdown", sets: "3×12", group: "Triceps" },
     ],
   },
   {
@@ -87,11 +88,11 @@ export const WORKOUT_DATA: WorkoutDay[] = [
     type: "Pull",
     isRest: false,
     exercises: [
-      { name: "Lat Pulldown", sets: "4×8-10" },
-      { name: "Seated Row", sets: "3×10" },
-      { name: "Deadlift", sets: "3×6-8" },
-      { name: "Dumbbell Curl", sets: "3×10" },
-      { name: "Hammer Curl", sets: "3×12" },
+      { name: "Lat Pulldown", sets: "4×8-10", group: "Back" },
+      { name: "Seated Row", sets: "3×10", group: "Back" },
+      { name: "Deadlift", sets: "3×6-8", group: "Back" },
+      { name: "Dumbbell Curl", sets: "3×10", group: "Biceps" },
+      { name: "Hammer Curl", sets: "3×12", group: "Biceps" },
     ],
   },
   {
@@ -133,7 +134,6 @@ export function saveProgress(key: string, checked: Record<string, boolean>) {
   localStorage.setItem(key, JSON.stringify({ _date: TODAY_KEY(), checked }));
 }
 
-// Streak helpers
 export function loadStreak(): StreakData {
   try {
     const raw = localStorage.getItem("streakData");
@@ -147,26 +147,21 @@ export function loadStreak(): StreakData {
 export function updateStreak(isFullyComplete: boolean): StreakData {
   const streak = loadStreak();
   const today = TODAY_KEY();
-
   if (!isFullyComplete) return streak;
   if (streak.lastCompletedDate === today) return streak;
-
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayKey = yesterday.toISOString().slice(0, 10);
-
   let newStreak: StreakData;
   if (streak.lastCompletedDate === yesterdayKey) {
     newStreak = { currentStreak: streak.currentStreak + 1, lastCompletedDate: today };
   } else {
     newStreak = { currentStreak: 1, lastCompletedDate: today };
   }
-
   localStorage.setItem("streakData", JSON.stringify(newStreak));
   return newStreak;
 }
 
-// Weekly history helpers
 export function loadWeeklyHistory(): DayHistory[] {
   try {
     const raw = localStorage.getItem("weeklyHistory");
@@ -180,15 +175,12 @@ export function loadWeeklyHistory(): DayHistory[] {
 export function saveToWeeklyHistory(workoutPct: number, dietPct: number) {
   const history = loadWeeklyHistory();
   const today = TODAY_KEY();
-
   const existing = history.findIndex((h) => h.date === today);
   if (existing >= 0) {
     history[existing] = { date: today, workoutPct, dietPct };
   } else {
     history.push({ date: today, workoutPct, dietPct });
   }
-
-  // Keep only last 7 days
   const trimmed = history.slice(-7);
   localStorage.setItem("weeklyHistory", JSON.stringify(trimmed));
 }

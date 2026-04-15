@@ -43,26 +43,20 @@ const Index = () => {
     touchEnd.current = null;
     touchStart.current = e.targetTouches[0].clientX;
   };
-
   const onTouchMove = (e: TouchEvent) => {
     touchEnd.current = e.targetTouches[0].clientX;
   };
-
   const onTouchEnd = () => {
     if (!touchStart.current || !touchEnd.current) return;
     const distance = touchStart.current - touchEnd.current;
     if (Math.abs(distance) < minSwipeDistance) return;
-    if (distance > 0 && activeTab < TABS.length - 1) {
-      switchTab(activeTab + 1);
-    } else if (distance < 0 && activeTab > 0) {
-      switchTab(activeTab - 1);
-    }
+    if (distance > 0 && activeTab < TABS.length - 1) switchTab(activeTab + 1);
+    else if (distance < 0 && activeTab > 0) switchTab(activeTab - 1);
   };
 
   const onWorkoutChange = useCallback((completed: number, total: number) => {
     setWorkoutStats({ completed, total });
   }, []);
-
   const onDietChange = useCallback((completed: number, total: number) => {
     setDietStats({ completed, total });
   }, []);
@@ -84,25 +78,15 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-background flex flex-col">
-      {/* Content area */}
       <div
-        className="flex-1 overflow-hidden pb-20"
+        className="flex-1 overflow-hidden pb-[72px]"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
       >
-        <div
-          key={activeTab}
-          className={`h-full overflow-y-auto animate-${slideDirection}`}
-        >
+        <div key={activeTab} className={`h-full overflow-y-auto animate-${slideDirection}`}>
           {activeTab === 0 && (
-            <HomeTab
-              workoutStats={workoutStats}
-              dietStats={dietStats}
-              streak={streak}
-              overallCompleted={overallCompleted}
-              overallTotal={overallTotal}
-            />
+            <HomeTab workoutStats={workoutStats} dietStats={dietStats} streak={streak} overallCompleted={overallCompleted} overallTotal={overallTotal} />
           )}
           {activeTab === 1 && <WorkoutTab onProgressChange={onWorkoutChange} />}
           {activeTab === 2 && <DietTab onProgressChange={onDietChange} />}
@@ -110,35 +94,35 @@ const Index = () => {
         </div>
       </div>
 
-      {/* Bottom Tab Bar — dark glass style */}
-      <nav className="fixed bottom-0 left-0 right-0 glass-card border-t border-border/50 z-50 safe-area-bottom">
-        <div className="flex items-center justify-around px-2 py-2">
-          {TABS.map((tab, i) => {
-            const Icon = tab.icon;
-            const isActive = activeTab === i;
-            return (
-              <button
-                key={tab.id}
-                onClick={() => switchTab(i)}
-                className={`relative flex flex-col items-center gap-0.5 px-5 py-2 rounded-2xl transition-all duration-300 ${
-                  isActive
-                    ? "text-primary"
-                    : "text-muted-foreground"
-                }`}
-              >
-                {isActive && (
-                  <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-6 h-1 rounded-full bg-primary" />
-                )}
-                <Icon
-                  className={`h-5 w-5 transition-all duration-300 ${isActive ? "scale-110" : ""}`}
-                  strokeWidth={isActive ? 2.5 : 1.8}
-                />
-                <span className={`text-[10px] font-semibold transition-all ${isActive ? "text-primary" : ""}`}>
-                  {tab.label}
-                </span>
-              </button>
-            );
-          })}
+      {/* Bottom Nav */}
+      <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
+        <div className="mx-3 mb-2 rounded-2xl bg-card/90 backdrop-blur-xl border border-border/30 shadow-2xl shadow-background/80">
+          <div className="flex items-center justify-around px-1 py-1.5">
+            {TABS.map((tab, i) => {
+              const Icon = tab.icon;
+              const isActive = activeTab === i;
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => switchTab(i)}
+                  className={`relative flex flex-col items-center gap-0.5 px-4 py-2 rounded-xl transition-all duration-300 ${
+                    isActive ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  {isActive && (
+                    <div className="absolute -top-0.5 left-1/2 -translate-x-1/2 w-5 h-0.5 rounded-full bg-primary shadow-lg shadow-primary/50" />
+                  )}
+                  <Icon
+                    className={`h-5 w-5 transition-all duration-300 ${isActive ? "scale-110" : ""}`}
+                    strokeWidth={isActive ? 2.5 : 1.8}
+                  />
+                  <span className={`text-[9px] font-bold transition-all ${isActive ? "text-primary" : ""}`}>
+                    {tab.label}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
         </div>
       </nav>
     </div>
