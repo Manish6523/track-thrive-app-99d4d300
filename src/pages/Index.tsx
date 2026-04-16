@@ -1,24 +1,25 @@
 import { useState, useCallback, useEffect, useRef, TouchEvent } from "react";
-import { Home, Dumbbell, UtensilsCrossed, Timer, BarChart3 } from "lucide-react";
+import { Home, Dumbbell, UtensilsCrossed, CalendarDays, BarChart3 } from "lucide-react";
 import HomeTab from "@/components/tabs/HomeTab";
 import WorkoutTab from "@/components/tabs/WorkoutTab";
-import ActiveWorkoutTab from "@/components/tabs/ActiveWorkoutTab";
 import DietTab from "@/components/tabs/DietTab";
+import CalendarTab from "@/components/tabs/CalendarTab";
 import StatsTab from "@/components/tabs/StatsTab";
 import {
   loadStreak,
   updateStreak,
   loadWeeklyHistory,
   saveToWeeklyHistory,
+  saveDailySnapshot,
 } from "@/lib/fitness-data";
+import { loadCustomWorkouts, loadCustomDiet } from "@/lib/fitness-store";
 
-// Tab order: Home, Workout, Meal, Timer, Dashboard
 const TABS = [
   { id: "home", label: "Home", icon: Home },
   { id: "workout", label: "Workout", icon: Dumbbell },
   { id: "meal", label: "Meal", icon: UtensilsCrossed },
-  { id: "timer", label: "Timer", icon: Timer },
-  { id: "dashboard", label: "Dashboard", icon: BarChart3 },
+  { id: "calendar", label: "Calendar", icon: CalendarDays },
+  { id: "stats", label: "Stats", icon: BarChart3 },
 ] as const;
 
 const Index = () => {
@@ -75,17 +76,41 @@ const Index = () => {
     setStreak(newStreak);
     saveToWeeklyHistory(workoutPct, dietPct);
     setWeeklyHistory(loadWeeklyHistory());
+
+    // Save daily snapshot for calendar history
+    const workouts = loadCustomWorkouts();
+    const meals = loadCustomDiet();
+    const dayIndex = new Date().getDay();
+    const dayMap = [6, 0, 1, 2, 3, 4, 5];
+    const todayWorkout = workouts[dayMap[dayIndex]];
+
+    // Get completed exercise/meal names from localStorage
+    const workoutProgress = JSON.parse(localStorage.getItem("workoutProgress") || "{}");
+    const dietProgress = JSON.parse(localStorage.getItem("dietProgress") || "{}");
+    const completedExercises = Object.entries(workoutProgress.checked || {})
+      .filter(([_, v]) => v)
+      .map(([k]) => k);
+    const completedMeals = Object.entries(dietProgress.checked || {})
+      .filter(([_, v]) => v)
+      .map(([k]) => k);
+
+    saveDailySnapshot({
+      workoutPct,
+      dietPct,
+      workoutType: todayWorkout?.type || "Rest",
+      completedExercises,
+      completedMeals,
+      totalExercises: todayWorkout?.isRest ? 0 : todayWorkout?.exercises.length || 0,
+      totalMeals: meals.length,
+    });
   }, [overallCompleted, overallTotal, workoutPct, dietPct]);
 
   const slideDirection = activeTab > prevTab ? "slide-left" : "slide-right";
 
-  // Timer tab is full-screen
-  const isFullScreenTab = activeTab === 3;
-
   return (
     <div className="min-h-screen bg-background flex flex-col max-w-md mx-auto relative">
       <div
-        className={`flex-1 overflow-hidden ${isFullScreenTab ? '' : 'pb-24'}`}
+        className="flex-1 overflow-hidden pb-24"
         onTouchStart={onTouchStart}
         onTouchMove={onTouchMove}
         onTouchEnd={onTouchEnd}
@@ -96,12 +121,12 @@ const Index = () => {
           )}
           {activeTab === 1 && <WorkoutTab onProgressChange={onWorkoutChange} />}
           {activeTab === 2 && <DietTab onProgressChange={onDietChange} />}
-          {activeTab === 3 && <ActiveWorkoutTab />}
+          {activeTab === 3 && <CalendarTab />}
           {activeTab === 4 && <StatsTab weeklyHistory={weeklyHistory} />}
         </div>
       </div>
 
-      {/* ─── Bottom Navigation Bar (matches reference image) ─── */}
+      {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 z-50 safe-area-bottom">
         <div className="max-w-md mx-auto px-5 pb-4">
           <div
@@ -116,38 +141,21 @@ const Index = () => {
             {TABS.map((tab, i) => {
               const Icon = tab.icon;
               const isActive = activeTab === i;
-
               return (
                 <button
                   key={tab.id}
-                  id={`nav-${tab.id}`}
                   onClick={() => switchTab(i)}
                   className="relative flex items-center justify-center transition-all duration-300"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   <div
-                    className={`h-11 w-11 rounded-full flex items-center justify-center transition-all duration-300 ${
-                      isActive
-                        ? 'scale-105'
-                        : 'scale-100'
-                    }`}
-                    style={
-                      isActive
-                        ? {
-                            background: 'hsl(270, 50%, 80%)',
-                            boxShadow: '0 2px 12px hsl(270 50% 80% / 0.35)',
-                          }
-                        : { background: 'transparent' }
-                    }
+                    className={`h-11 w-11 rounded-full flex items-center justify-center transition-all duration-300 ${isActive ? 'scale-105' : 'scale-100'}`}
+                    style={isActive ? { background: 'hsl(270, 50%, 80%)', boxShadow: '0 2px 12px hsl(270 50% 80% / 0.35)' } : { background: 'transparent' }}
                   >
                     <Icon
                       className="h-[20px] w-[20px] transition-all duration-300"
                       strokeWidth={isActive ? 2.4 : 1.6}
-                      style={{
-                        color: isActive
-                          ? 'hsl(270, 20%, 20%)'
-                          : 'hsl(0, 0%, 45%)',
-                      }}
+                      style={{ color: isActive ? 'hsl(270, 20%, 20%)' : 'hsl(0, 0%, 45%)' }}
                     />
                   </div>
                 </button>
