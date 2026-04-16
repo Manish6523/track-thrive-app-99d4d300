@@ -28,6 +28,17 @@ export interface DayHistory {
   dietPct: number;
 }
 
+export interface DailySnapshot {
+  date: string;
+  workoutPct: number;
+  dietPct: number;
+  workoutType: string;
+  completedExercises: string[];
+  completedMeals: string[];
+  totalExercises: number;
+  totalMeals: number;
+}
+
 export const WORKOUT_DATA: WorkoutDay[] = [
   {
     day: "Monday",
@@ -181,8 +192,41 @@ export function saveToWeeklyHistory(workoutPct: number, dietPct: number) {
   } else {
     history.push({ date: today, workoutPct, dietPct });
   }
-  const trimmed = history.slice(-7);
+  const trimmed = history.slice(-30);
   localStorage.setItem("weeklyHistory", JSON.stringify(trimmed));
+}
+
+// ── Daily Snapshots for Calendar ──
+const SNAPSHOTS_KEY = "dailySnapshots";
+
+export function loadDailySnapshots(): DailySnapshot[] {
+  try {
+    const raw = localStorage.getItem(SNAPSHOTS_KEY);
+    if (!raw) return [];
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+export function saveDailySnapshot(snapshot: Omit<DailySnapshot, "date">) {
+  const snapshots = loadDailySnapshots();
+  const today = TODAY_KEY();
+  const idx = snapshots.findIndex((s) => s.date === today);
+  const full: DailySnapshot = { ...snapshot, date: today };
+  if (idx >= 0) {
+    snapshots[idx] = full;
+  } else {
+    snapshots.push(full);
+  }
+  // keep last 90 days
+  const trimmed = snapshots.slice(-90);
+  localStorage.setItem(SNAPSHOTS_KEY, JSON.stringify(trimmed));
+}
+
+export function getSnapshotForDate(date: string): DailySnapshot | null {
+  const snapshots = loadDailySnapshots();
+  return snapshots.find((s) => s.date === date) || null;
 }
 
 export function getGreeting(): string {
