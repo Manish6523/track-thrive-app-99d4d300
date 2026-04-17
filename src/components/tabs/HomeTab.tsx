@@ -1,8 +1,6 @@
-import { ChevronLeft, ChevronRight, Footprints, Target, Grid2X2 } from "lucide-react";
-import { getGreeting, getTodayWorkout } from "@/lib/fitness-data";
+import { Flame, Dumbbell, UtensilsCrossed, TrendingUp, ChevronRight, Sparkles, Trophy } from "lucide-react";
+import { getGreeting, getTodayWorkout, type StreakData } from "@/lib/fitness-data";
 import { loadCustomDiet } from "@/lib/fitness-store";
-import type { StreakData } from "@/lib/fitness-data";
-import { useState } from "react";
 
 interface HomeTabProps {
   workoutStats: { completed: number; total: number };
@@ -15,246 +13,167 @@ interface HomeTabProps {
 const HomeTab = ({ workoutStats, dietStats, streak, overallCompleted, overallTotal }: HomeTabProps) => {
   const todayWorkout = getTodayWorkout();
   const customDiet = loadCustomDiet();
-  const mealsRemaining = customDiet.length - dietStats.completed;
   const overallPct = overallTotal === 0 ? 0 : Math.round((overallCompleted / overallTotal) * 100);
   const workoutPct = workoutStats.total === 0 ? 0 : Math.round((workoutStats.completed / workoutStats.total) * 100);
   const dietPct = dietStats.total === 0 ? 0 : Math.round((dietStats.completed / dietStats.total) * 100);
 
-  const [weekOffset, setWeekOffset] = useState(0);
-  const [activeFilter, setActiveFilter] = useState("All");
-
   const today = new Date();
-  const startOfWeek = new Date(today);
-  startOfWeek.setDate(today.getDate() - today.getDay() + 1 + weekOffset * 7);
+  const dayName = today.toLocaleDateString("en-US", { weekday: "long" });
+  const dateStr = today.toLocaleDateString("en-US", { month: "long", day: "numeric" });
+  const greeting = getGreeting();
 
-  const weekDays = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(startOfWeek);
-    d.setDate(startOfWeek.getDate() + i);
-    return d;
-  });
+  // Donut for overall progress
+  const ringR = 42;
+  const ringC = 2 * Math.PI * ringR;
 
-  const monthYear = startOfWeek.toLocaleDateString("en-US", { month: "long", year: "numeric" });
-  const dayLabels = ["M", "T", "W", "T", "F", "S", "S"];
-
-  // Calorie calculations
-  const targetCal = 1200;
-  const burnedCal = Math.round(targetCal * (workoutPct / 100) * 0.27);
-  const remainingCal = targetCal - burnedCal;
-
-  // Steps simulation based on workout progress
-  const steps = Math.round(1840 + (workoutPct / 100) * 3000);
-
-  const filters = ["All", "Running", "Cycling"];
-
-  // Donut ring for calorie
-  const donutRadius = 38;
-  const donutCircumference = 2 * Math.PI * donutRadius;
-  const targetPortion = 0.45;
-  const burnedPortion = 0.25;
-  const remainingPortion = 0.30;
+  const mealsRemaining = customDiet.length - dietStats.completed;
+  const exercisesRemaining = todayWorkout.isRest ? 0 : todayWorkout.exercises.length - workoutStats.completed;
 
   return (
     <div className="px-5 pt-14 pb-6 space-y-5 stagger">
-      {/* Header */}
-      <div className="animate-fade-up">
-        <div className="flex items-center justify-between">
-          <h1 className="text-[22px] font-extrabold text-foreground tracking-tight" style={{ fontStyle: 'italic' }}>
-            Your Activity
-          </h1>
-          <button className="h-10 w-10 rounded-xl bg-card border border-border/50 flex items-center justify-center">
-            <Grid2X2 className="h-4 w-4 text-foreground" />
-          </button>
-        </div>
-      </div>
-
-      {/* Month & Week Nav */}
-      <div className="animate-fade-up">
-        <div className="flex items-center justify-between mb-4">
-          <span className="text-base font-bold text-foreground">{monthYear}</span>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => setWeekOffset(w => w - 1)}
-              className="h-8 w-8 rounded-full bg-card border border-border/40 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </button>
-            <button
-              onClick={() => setWeekOffset(w => w + 1)}
-              className="h-8 w-8 rounded-full bg-card border border-border/40 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </button>
-          </div>
-        </div>
-
-        {/* Week Calendar Row */}
-        <div className="grid grid-cols-7 gap-1">
-          {dayLabels.map((l, i) => (
-            <div key={i} className="text-center text-[11px] font-bold text-muted-foreground mb-1.5">{l}</div>
-          ))}
-          {weekDays.map((d, i) => {
-            const isToday = d.toDateString() === today.toDateString();
-            return (
-              <div key={i} className="flex justify-center">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-                  isToday
-                    ? "bg-primary text-primary-foreground shadow-lg shadow-primary/30"
-                    : "text-foreground/70 hover:bg-card"
-                }`}>
-                  {d.getDate()}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* Today's Challenge Card - Lime green background with workout image */}
-      <div className="animate-fade-up rounded-2xl overflow-hidden relative" style={{ background: 'hsl(72, 70%, 55%)' }}>
-        <div className="flex items-stretch">
-          <div className="flex-1 p-4 flex flex-col justify-center">
-            <p className="text-[15px] font-extrabold text-black" style={{ fontStyle: 'italic' }}>
-              Today's Challenge
-            </p>
-            <p className="text-[11px] text-black/70 mt-1 font-medium">
-              Do your plan before 9:00 AM
-            </p>
-          </div>
-          <div className="w-24 h-24 relative">
-            <img 
-              src="/workout-hero.png" 
-              alt="Workout" 
-              className="w-full h-full object-cover workout-card-img"
-            />
-          </div>
-        </div>
-      </div>
-
-      {/* Filter Pills */}
-      <div className="animate-fade-up flex gap-2">
-        {filters.map(filter => (
-          <button
-            key={filter}
-            onClick={() => setActiveFilter(filter)}
-            className={`px-5 py-2 rounded-full text-xs font-bold transition-all ${
-              activeFilter === filter
-                ? "bg-foreground text-background"
-                : "bg-card border border-border/40 text-muted-foreground"
-            }`}
-          >
-            {filter}
-          </button>
-        ))}
-      </div>
-
-      {/* Steps & My Goals Row */}
-      <div className="animate-fade-up grid grid-cols-2 gap-3">
-        {/* Steps Card - Lime */}
-        <div className="rounded-2xl p-4" style={{ background: 'hsl(72, 70%, 55%)' }}>
-          <div className="flex items-center justify-between mb-3">
-            <span className="text-xs font-bold text-black/70">Steps</span>
-            <Footprints className="h-5 w-5 text-black/40" />
-          </div>
-          <p className="text-3xl font-black text-black">{steps.toLocaleString()}</p>
-          <p className="text-[10px] font-bold text-black/50 mt-1 uppercase">Steps</p>
-        </div>
-
-        {/* My Goals Card - Lavender */}
-        <div className="rounded-2xl p-4 relative overflow-hidden" style={{ background: 'hsl(270, 60%, 82%)' }}>
-          <div className="flex items-center gap-2 mb-2">
-            <Target className="h-4 w-4 text-black/50" />
-            <span className="text-xs font-bold text-black/80">My Goals</span>
-          </div>
-          <p className="text-[10px] text-black/60 leading-relaxed">
-            Keep it up, you can achieve your goals.
+      {/* Greeting Header */}
+      <div className="animate-fade-up flex items-start justify-between">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-[0.2em]" style={{ color: 'hsl(72, 100%, 50%)' }}>
+            {greeting}
           </p>
-          {/* Circular progress */}
-          <div className="absolute bottom-3 right-3">
-            <div className="relative h-12 w-12">
-              <svg className="h-12 w-12 -rotate-90" viewBox="0 0 50 50">
-                <circle cx="25" cy="25" r="20" fill="none" stroke="rgba(0,0,0,0.1)" strokeWidth="4" />
-                <circle
-                  cx="25" cy="25" r="20" fill="none"
-                  stroke="rgba(0,0,0,0.5)"
-                  strokeWidth="4"
-                  strokeDasharray={2 * Math.PI * 20}
-                  strokeDashoffset={2 * Math.PI * 20 * (1 - overallPct / 100)}
-                  strokeLinecap="round"
-                  className="transition-all duration-1000"
-                />
-              </svg>
-              <div className="absolute inset-0 flex items-center justify-center">
-                <span className="text-[10px] font-black text-black/70">{overallPct}%</span>
-              </div>
-            </div>
-          </div>
+          <h1 className="text-[26px] font-extrabold text-foreground mt-1 leading-tight" style={{ fontStyle: 'italic' }}>
+            {dayName}
+          </h1>
+          <p className="text-xs font-medium text-muted-foreground mt-0.5">{dateStr}</p>
         </div>
+        {streak.currentStreak > 0 && (
+          <div className="flex items-center gap-1.5 px-3 py-2 rounded-2xl" style={{ background: 'hsl(20, 90%, 55%)' }}>
+            <Flame className="h-4 w-4 text-white" fill="white" />
+            <span className="text-sm font-black text-white">{streak.currentStreak}</span>
+          </div>
+        )}
       </div>
 
-      {/* Calorie / Nutrition Breakdown Card */}
-      <div className="animate-fade-up rounded-2xl bg-card border border-border/40 p-4">
+      {/* Hero Progress Card with Donut */}
+      <div className="animate-fade-up rounded-[28px] p-5 relative overflow-hidden" style={{ background: 'hsl(72, 70%, 55%)' }}>
         <div className="flex items-center gap-5">
-          {/* Donut Chart */}
-          <div className="relative h-24 w-24 shrink-0">
-            <svg className="h-24 w-24 -rotate-90" viewBox="0 0 100 100">
-              {/* Target ring - Lime */}
+          <div className="relative h-28 w-28 shrink-0">
+            <svg className="h-28 w-28 -rotate-90" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r={ringR} fill="none" stroke="rgba(0,0,0,0.12)" strokeWidth="9" />
               <circle
-                cx="50" cy="50" r={donutRadius} fill="none"
-                stroke="hsl(72, 100%, 50%)"
-                strokeWidth="8"
-                strokeDasharray={donutCircumference}
-                strokeDashoffset={donutCircumference * (1 - targetPortion)}
+                cx="50" cy="50" r={ringR} fill="none"
+                stroke="black"
+                strokeWidth="9"
+                strokeDasharray={ringC}
+                strokeDashoffset={ringC * (1 - overallPct / 100)}
                 strokeLinecap="round"
                 className="transition-all duration-1000"
-              />
-              {/* Burned ring - Lavender */}
-              <circle
-                cx="50" cy="50" r={donutRadius} fill="none"
-                stroke="hsl(270, 60%, 75%)"
-                strokeWidth="8"
-                strokeDasharray={donutCircumference}
-                strokeDashoffset={donutCircumference * (1 - burnedPortion)}
-                strokeLinecap="round"
-                className="transition-all duration-1000"
-                style={{ transform: `rotate(${targetPortion * 360}deg)`, transformOrigin: '50% 50%' }}
-              />
-              {/* Remaining ring - Mint */}
-              <circle
-                cx="50" cy="50" r={donutRadius} fill="none"
-                stroke="hsl(160, 50%, 70%)"
-                strokeWidth="8"
-                strokeDasharray={donutCircumference}
-                strokeDashoffset={donutCircumference * (1 - remainingPortion)}
-                strokeLinecap="round"
-                className="transition-all duration-1000"
-                style={{ transform: `rotate(${(targetPortion + burnedPortion) * 360}deg)`, transformOrigin: '50% 50%' }}
               />
             </svg>
-            {/* Center numbers */}
-            <div className="absolute top-1 right-0 bg-primary text-primary-foreground text-[8px] font-bold rounded-full h-5 w-5 flex items-center justify-center">1</div>
-            <div className="absolute top-8 right-0 text-secondary text-[8px] font-bold bg-secondary/20 rounded-full h-5 w-5 flex items-center justify-center">2</div>
-            <div className="absolute bottom-2 right-2 text-[hsl(160,50%,70%)] text-[8px] font-bold bg-[hsl(160,50%,70%)]/20 rounded-full h-5 w-5 flex items-center justify-center">3</div>
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <span className="text-3xl font-black text-black leading-none">{overallPct}%</span>
+              <span className="text-[9px] font-bold text-black/60 uppercase mt-0.5">Today</span>
+            </div>
           </div>
-          
-          {/* Legend */}
-          <div className="flex-1 space-y-3">
-            <div className="flex items-center gap-2">
-              <div className="h-2.5 w-2.5 rounded-full bg-primary" />
-              <span className="text-sm font-bold text-foreground">{targetCal} Kcal</span>
-              <span className="text-[10px] text-muted-foreground ml-auto">Target</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-2.5 w-2.5 rounded-full" style={{ background: 'hsl(270, 60%, 75%)' }} />
-              <span className="text-sm font-bold text-foreground">{burnedCal} Kcal</span>
-              <span className="text-[10px] text-muted-foreground ml-auto">Burned</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="h-2.5 w-2.5 rounded-full" style={{ background: 'hsl(160, 50%, 70%)' }} />
-              <span className="text-sm font-bold text-foreground">{remainingCal} Kcal</span>
-              <span className="text-[10px] text-muted-foreground ml-auto">Remaining</span>
+          <div className="flex-1 min-w-0">
+            <p className="text-[11px] font-bold text-black/60 uppercase tracking-wider">Daily Goal</p>
+            <p className="text-lg font-extrabold text-black leading-tight mt-1" style={{ fontStyle: 'italic' }}>
+              {overallPct === 100 ? "Crushed it!" : overallPct >= 50 ? "Keep going!" : "Let's start!"}
+            </p>
+            <div className="flex items-center gap-1 mt-2 text-xs font-bold text-black/70">
+              <Trophy className="h-3.5 w-3.5" />
+              <span>{overallCompleted}/{overallTotal} tasks</span>
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Workout & Diet stat row */}
+      <div className="animate-fade-up grid grid-cols-2 gap-3">
+        {/* Workout */}
+        <div className="rounded-2xl p-4 bg-card border border-border/40 relative overflow-hidden">
+          <div className="flex items-center justify-between mb-3">
+            <div className="h-8 w-8 rounded-xl flex items-center justify-center" style={{ background: 'hsl(72, 100%, 50%, 0.15)' }}>
+              <Dumbbell className="h-4 w-4" style={{ color: 'hsl(72, 100%, 50%)' }} />
+            </div>
+            <span className="text-xs font-black text-foreground">{workoutPct}%</span>
+          </div>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Workout</p>
+          <p className="text-base font-extrabold text-foreground mt-0.5 truncate">{todayWorkout.type}</p>
+          <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full transition-all duration-700 rounded-full"
+              style={{ width: `${workoutPct}%`, background: 'hsl(72, 100%, 50%)' }}
+            />
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1.5 font-medium">
+            {todayWorkout.isRest ? "Rest day" : `${exercisesRemaining} left`}
+          </p>
+        </div>
+
+        {/* Diet */}
+        <div className="rounded-2xl p-4 bg-card border border-border/40 relative overflow-hidden">
+          <div className="flex items-center justify-between mb-3">
+            <div className="h-8 w-8 rounded-xl flex items-center justify-center" style={{ background: 'hsl(270, 60%, 75%, 0.18)' }}>
+              <UtensilsCrossed className="h-4 w-4" style={{ color: 'hsl(270, 60%, 75%)' }} />
+            </div>
+            <span className="text-xs font-black text-foreground">{dietPct}%</span>
+          </div>
+          <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Diet</p>
+          <p className="text-base font-extrabold text-foreground mt-0.5">Meals</p>
+          <div className="mt-2 h-1.5 bg-muted rounded-full overflow-hidden">
+            <div
+              className="h-full transition-all duration-700 rounded-full"
+              style={{ width: `${dietPct}%`, background: 'hsl(270, 60%, 75%)' }}
+            />
+          </div>
+          <p className="text-[10px] text-muted-foreground mt-1.5 font-medium">{mealsRemaining} left</p>
+        </div>
+      </div>
+
+      {/* Today's Workout Preview */}
+      <div className="animate-fade-up rounded-2xl bg-card border border-border/40 overflow-hidden">
+        <div className="p-4 flex items-center justify-between border-b border-border/30">
+          <div className="flex items-center gap-2">
+            <Sparkles className="h-4 w-4" style={{ color: 'hsl(72, 100%, 50%)' }} />
+            <h3 className="text-sm font-extrabold text-foreground" style={{ fontStyle: 'italic' }}>Today's Plan</h3>
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full" style={{ background: 'hsl(72, 100%, 50%, 0.15)', color: 'hsl(72, 100%, 50%)' }}>
+            {todayWorkout.type}
+          </span>
+        </div>
+        <div className="p-2">
+          {todayWorkout.exercises.slice(0, 4).map((ex, i) => (
+            <div key={i} className="flex items-center gap-3 px-3 py-2.5 rounded-xl hover:bg-muted/50 transition-colors">
+              <div className="h-7 w-7 rounded-lg bg-muted flex items-center justify-center text-[10px] font-black text-muted-foreground">
+                {i + 1}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-bold text-foreground truncate">{ex.name}</p>
+                {ex.group && <p className="text-[10px] text-muted-foreground font-medium">{ex.group}</p>}
+              </div>
+              {ex.sets && <span className="text-xs font-bold text-muted-foreground shrink-0">{ex.sets}</span>}
+            </div>
+          ))}
+          {todayWorkout.exercises.length > 4 && (
+            <div className="px-3 py-2 text-[11px] font-bold text-muted-foreground flex items-center gap-1">
+              +{todayWorkout.exercises.length - 4} more
+              <ChevronRight className="h-3 w-3" />
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Streak Banner */}
+      <div className="animate-fade-up rounded-2xl p-4 flex items-center gap-4" style={{ background: 'hsl(270, 60%, 82%)' }}>
+        <div className="h-12 w-12 rounded-2xl bg-black/10 flex items-center justify-center">
+          <TrendingUp className="h-5 w-5 text-black" />
+        </div>
+        <div className="flex-1">
+          <p className="text-[10px] font-bold text-black/60 uppercase tracking-wider">Best Streak</p>
+          <p className="text-lg font-black text-black leading-tight">
+            {streak.currentStreak} {streak.currentStreak === 1 ? "day" : "days"}
+          </p>
+        </div>
+        <p className="text-[10px] text-black/60 font-bold max-w-[110px] text-right leading-snug">
+          Complete every task to extend
+        </p>
       </div>
     </div>
   );
