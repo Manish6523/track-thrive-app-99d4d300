@@ -89,8 +89,8 @@ const WeightTracker = () => {
               <div className="flex items-center gap-2 text-sm">
                 <span className="font-black text-foreground">{last.weight} kg</span>
                 {diff !== 0 && (
-                  <span className={`flex items-center gap-0.5 text-xs font-bold ${diff < 0 ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
-                    {diff < 0 ? <TrendingDown className="h-3 w-3" /> : <TrendingUp className="h-3 w-3" />}
+                  <span className={`flex items-center gap-0.5 text-xs font-bold ${diff > 0 ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
+                    {diff > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
                     {Math.abs(diff).toFixed(1)}
                   </span>
                 )}
@@ -183,7 +183,7 @@ const WeightTracker = () => {
                       <div className="flex items-center gap-3">
                         <span className="font-bold text-foreground">{e.weight} kg</span>
                         {change !== 0 && (
-                          <span className={`text-xs font-bold flex items-center gap-0.5 ${change < 0 ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
+                          <span className={`text-xs font-bold flex items-center gap-0.5 ${change > 0 ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
                             {change > 0 ? "+" : ""}{change.toFixed(1)}
                           </span>
                         )}
