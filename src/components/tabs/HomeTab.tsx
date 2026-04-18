@@ -61,12 +61,15 @@ const HomeTab = ({ workoutStats, dietStats, streak, overallCompleted, overallTot
           </h1>
           <p className="text-xs font-medium text-muted-foreground mt-0.5">{dateStr}</p>
         </div>
-        {streak.currentStreak > 0 && (
-          <div className="flex items-center gap-1.5 px-3 py-2 rounded-2xl" style={{ background: 'hsl(20, 90%, 55%)' }}>
-            <Flame className="h-4 w-4 text-white" fill="white" />
-            <span className="text-sm font-black text-white">{streak.currentStreak}</span>
-          </div>
-        )}
+        <button
+          onClick={handleStreakTap}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-2xl select-none active:scale-95 transition-transform"
+          style={{ background: streak.currentStreak > 0 ? 'hsl(20, 90%, 55%)' : 'hsl(0, 0%, 25%)', WebkitTapHighlightColor: 'transparent' }}
+          aria-label="Streak"
+        >
+          <Flame className="h-4 w-4 text-white" fill="white" />
+          <span className="text-sm font-black text-white">{streak.currentStreak}</span>
+        </button>
       </div>
 
       {/* Hero Progress Card with Donut */}
