@@ -71,8 +71,10 @@ const Index = () => {
   const dietPct = dietStats.total === 0 ? 0 : Math.round((dietStats.completed / dietStats.total) * 100);
 
   useEffect(() => {
-    const isFullyComplete = overallTotal > 0 && overallCompleted === overallTotal;
-    const newStreak = updateStreak(isFullyComplete);
+    // Streak qualifies when overall completion is > 70%
+    const overallPct = overallTotal === 0 ? 0 : (overallCompleted / overallTotal) * 100;
+    const qualifies = overallPct > 70;
+    const newStreak = updateStreak(qualifies);
     setStreak(newStreak);
     saveToWeeklyHistory(workoutPct, dietPct);
     setWeeklyHistory(loadWeeklyHistory());

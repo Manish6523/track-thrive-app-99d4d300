@@ -155,10 +155,10 @@ export function loadStreak(): StreakData {
   }
 }
 
-export function updateStreak(isFullyComplete: boolean): StreakData {
+export function updateStreak(qualifies: boolean): StreakData {
   const streak = loadStreak();
   const today = TODAY_KEY();
-  if (!isFullyComplete) return streak;
+  if (!qualifies) return streak;
   if (streak.lastCompletedDate === today) return streak;
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
