@@ -1,10 +1,11 @@
 import { useState, useCallback, useEffect, useRef, TouchEvent } from "react";
-import { Home, Dumbbell, UtensilsCrossed, CalendarDays, BarChart3 } from "lucide-react";
+import { Home, Dumbbell, UtensilsCrossed, CalendarDays, BarChart3, Settings } from "lucide-react";
 import HomeTab from "@/components/tabs/HomeTab";
 import WorkoutTab from "@/components/tabs/WorkoutTab";
 import DietTab from "@/components/tabs/DietTab";
 import CalendarTab from "@/components/tabs/CalendarTab";
 import StatsTab from "@/components/tabs/StatsTab";
+import SettingsTab from "@/components/tabs/SettingsTab";
 import {
   loadStreak,
   updateStreak,
@@ -20,6 +21,7 @@ const TABS = [
   { id: "meal", label: "Meal", icon: UtensilsCrossed },
   { id: "calendar", label: "Calendar", icon: CalendarDays },
   { id: "stats", label: "Stats", icon: BarChart3 },
+  { id: "settings", label: "Settings", icon: Settings },
 ] as const;
 
 const Index = () => {
@@ -67,8 +69,8 @@ const Index = () => {
 
   const overallTotal = workoutStats.total + dietStats.total;
   const overallCompleted = workoutStats.completed + dietStats.completed;
-  const workoutPct = workoutStats.total === 0 ? 0 : Math.round((workoutStats.completed / workoutStats.total) * 100);
-  const dietPct = dietStats.total === 0 ? 0 : Math.round((dietStats.completed / dietStats.total) * 100);
+  const workoutPct = workoutStats.total === 0 ? 0 : Math.min(100, Math.round((workoutStats.completed / workoutStats.total) * 100));
+  const dietPct = dietStats.total === 0 ? 0 : Math.min(100, Math.round((dietStats.completed / dietStats.total) * 100));
 
   useEffect(() => {
     // Streak qualifies when overall completion is > 70%
@@ -125,6 +127,7 @@ const Index = () => {
           {activeTab === 2 && <DietTab onProgressChange={onDietChange} />}
           {activeTab === 3 && <CalendarTab />}
           {activeTab === 4 && <StatsTab weeklyHistory={weeklyHistory} />}
+          {activeTab === 5 && <SettingsTab />}
         </div>
       </div>
 
