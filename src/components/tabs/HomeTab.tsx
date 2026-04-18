@@ -1,6 +1,8 @@
+import { useRef } from "react";
 import { Flame, Dumbbell, UtensilsCrossed, TrendingUp, ChevronRight, Sparkles, Trophy } from "lucide-react";
 import { getGreeting, getTodayWorkout, type StreakData } from "@/lib/fitness-data";
 import { loadCustomDiet } from "@/lib/fitness-store";
+import { toast } from "sonner";
 
 interface HomeTabProps {
   workoutStats: { completed: number; total: number };
@@ -11,6 +13,23 @@ interface HomeTabProps {
 }
 
 const HomeTab = ({ workoutStats, dietStats, streak, overallCompleted, overallTotal }: HomeTabProps) => {
+  const tapCount = useRef(0);
+  const tapTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const handleStreakTap = () => {
+    tapCount.current += 1;
+    if (tapTimer.current) clearTimeout(tapTimer.current);
+    tapTimer.current = setTimeout(() => { tapCount.current = 0; }, 2000);
+    if (tapCount.current >= 5) {
+      tapCount.current = 0;
+      const current = localStorage.getItem("settingsTabVisible") === "true";
+      const next = !current;
+      localStorage.setItem("settingsTabVisible", String(next));
+      window.dispatchEvent(new Event("settings-visibility-changed"));
+      toast.success(next ? "Settings tab enabled" : "Settings tab hidden");
+    }
+  };
+
   const todayWorkout = getTodayWorkout();
   const customDiet = loadCustomDiet();
   const overallPct = overallTotal === 0 ? 0 : Math.round((overallCompleted / overallTotal) * 100);
