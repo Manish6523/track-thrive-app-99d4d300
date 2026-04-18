@@ -158,11 +158,26 @@ export function loadStreak(): StreakData {
 export function updateStreak(qualifies: boolean): StreakData {
   const streak = loadStreak();
   const today = TODAY_KEY();
-  if (!qualifies) return streak;
-  if (streak.lastCompletedDate === today) return streak;
   const yesterday = new Date();
   yesterday.setDate(yesterday.getDate() - 1);
   const yesterdayKey = yesterday.toISOString().slice(0, 10);
+
+  // If today was previously credited but no longer qualifies, revoke it.
+  if (!qualifies) {
+    if (streak.lastCompletedDate === today) {
+      const reverted: StreakData = {
+        currentStreak: Math.max(0, streak.currentStreak - 1),
+        lastCompletedDate: streak.currentStreak - 1 > 0 ? yesterdayKey : "",
+      };
+      localStorage.setItem("streakData", JSON.stringify(reverted));
+      return reverted;
+    }
+    return streak;
+  }
+
+  // Already credited today, nothing to do.
+  if (streak.lastCompletedDate === today) return streak;
+
   let newStreak: StreakData;
   if (streak.lastCompletedDate === yesterdayKey) {
     newStreak = { currentStreak: streak.currentStreak + 1, lastCompletedDate: today };
