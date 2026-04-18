@@ -33,8 +33,8 @@ const WeeklyChart = ({ history }: WeeklyChartProps) => {
     const entry = history.find((h) => h.date === dateStr);
     chartData.push({
       day: DAY_LABELS[d.getDay()],
-      workout: entry?.workoutPct ?? 0,
-      diet: entry?.dietPct ?? 0,
+      workout: Math.min(100, Math.max(0, entry?.workoutPct ?? 0)),
+      diet: Math.min(100, Math.max(0, entry?.dietPct ?? 0)),
     });
   }
 
