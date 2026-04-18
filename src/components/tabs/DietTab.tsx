@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Check, Clock, Apple, Flame } from "lucide-react";
+import { Check, Clock, Apple } from "lucide-react";
 import { loadProgress, saveProgress } from "@/lib/fitness-data";
 import { loadCustomDiet, saveCustomDiet } from "@/lib/fitness-store";
 import EditDietDialog from "@/components/EditDietDialog";
@@ -33,10 +33,6 @@ const DietTab = ({ onProgressChange }: DietTabProps) => {
 
   const completedCount = Object.values(checked).filter(Boolean).length;
   const pct = meals.length === 0 ? 0 : Math.round((completedCount / meals.length) * 100);
-
-  // Calorie estimates from diet
-  const totalCalories = 1200;
-  const consumedCalories = Math.round(totalCalories * (pct / 100));
 
   return (
     <div className="px-5 pt-14 pb-6 space-y-5">
@@ -76,26 +72,6 @@ const DietTab = ({ onProgressChange }: DietTabProps) => {
               style={{ width: `${pct}%` }}
             />
           </div>
-        </div>
-      </div>
-
-      {/* Calorie summary mini card */}
-      <div className="animate-fade-up grid grid-cols-2 gap-3">
-        <div className="rounded-2xl p-3.5" style={{ background: 'hsl(72, 70%, 55%)' }}>
-          <div className="flex items-center gap-2 mb-1">
-            <Flame className="h-3.5 w-3.5 text-black/40" />
-            <span className="text-[10px] font-bold text-black/50 uppercase">Consumed</span>
-          </div>
-          <p className="text-xl font-black text-black">{consumedCalories}</p>
-          <p className="text-[10px] text-black/50 font-bold">Kcal</p>
-        </div>
-        <div className="rounded-2xl p-3.5 bg-card border border-border/40">
-          <div className="flex items-center gap-2 mb-1">
-            <Flame className="h-3.5 w-3.5 text-muted-foreground" />
-            <span className="text-[10px] font-bold text-muted-foreground uppercase">Remaining</span>
-          </div>
-          <p className="text-xl font-black text-foreground">{totalCalories - consumedCalories}</p>
-          <p className="text-[10px] text-muted-foreground font-bold">Kcal</p>
         </div>
       </div>
 
