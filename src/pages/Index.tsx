@@ -15,7 +15,7 @@ import {
 } from "@/lib/fitness-data";
 import { loadCustomWorkouts, loadCustomDiet } from "@/lib/fitness-store";
 
-const TABS = [
+const ALL_TABS = [
   { id: "home", label: "Home", icon: Home },
   { id: "workout", label: "Workout", icon: Dumbbell },
   { id: "meal", label: "Meal", icon: UtensilsCrossed },
