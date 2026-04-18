@@ -91,7 +91,7 @@ const WeightTracker = () => {
                 {diff !== 0 && (
                   <span className={`flex items-center gap-0.5 text-xs font-bold ${diff > 0 ? "text-[hsl(var(--success))]" : "text-destructive"}`}>
                     {diff > 0 ? <TrendingUp className="h-3 w-3" /> : <TrendingDown className="h-3 w-3" />}
-                    {Math.abs(diff).toFixed(1)}
+                    {diff > 0 ? "+" : "-"}{Math.abs(diff).toFixed(1)}
                   </span>
                 )}
               </div>
