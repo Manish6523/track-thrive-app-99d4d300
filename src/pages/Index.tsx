@@ -25,6 +25,16 @@ const ALL_TABS = [
 ] as const;
 
 const Index = () => {
+  const [settingsVisible, setSettingsVisible] = useState(() => localStorage.getItem("settingsTabVisible") === "true");
+
+  useEffect(() => {
+    const handler = () => setSettingsVisible(localStorage.getItem("settingsTabVisible") === "true");
+    window.addEventListener("settings-visibility-changed", handler);
+    return () => window.removeEventListener("settings-visibility-changed", handler);
+  }, []);
+
+  const TABS = settingsVisible ? ALL_TABS : ALL_TABS.filter((t) => t.id !== "settings");
+
   const [activeTab, setActiveTab] = useState(0);
   const [prevTab, setPrevTab] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
@@ -32,6 +42,12 @@ const Index = () => {
   const [dietStats, setDietStats] = useState({ completed: 0, total: 0 });
   const [streak, setStreak] = useState(() => loadStreak());
   const [weeklyHistory, setWeeklyHistory] = useState(() => loadWeeklyHistory());
+
+  // If settings tab is hidden while user is on it, snap back to home.
+  useEffect(() => {
+    if (!settingsVisible && activeTab >= TABS.length) setActiveTab(0);
+  }, [settingsVisible, activeTab, TABS.length]);
+
 
   const touchStart = useRef<number | null>(null);
   const touchEnd = useRef<number | null>(null);
